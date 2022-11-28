@@ -3,6 +3,7 @@ import 'dart:io';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:binary/binary.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nhentai/data_model.dart';
@@ -45,6 +46,31 @@ class Preferences {
   Future<void> setResetHistoryOnBoot(bool value) => 
     storage.setBool(kResetHistoryOnBoot, value);
   
+  /// Toggles tag between 3 states: none, included, excluded
+  /// 
+  /// Returns:  
+  /// * -1 if set to excluded 
+  /// * 0 if set to non
+  /// * 1 if set to included
+  Future<int> toggleTag(Tag tag) async {
+    final key = storage.selectedTagsBox.toMap().entries.firstWhereOrNull((e) => e.value.id == tag.id)?.key;
+    if(key == null) {
+      await storage.selectedTagsBox.add(TagWithState(tag: tag, state: TagState.included));
+      return 1;
+    }
+      
+    final previous = storage.selectedTagsBox.get(key)!;
+    
+    await storage.selectedTagsBox.put(key, 
+      TagWithState(
+        tag: tag, // Updates tag count 
+        state: previous.state.next(),
+      ),
+    );
+
+    return (previous.state.index + 1) % 3 - 1; 
+  }
+
 }
 
 class Storage implements CacheProvider {

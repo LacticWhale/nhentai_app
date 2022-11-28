@@ -253,27 +253,32 @@ class _TagPageViewState extends State<_TagPageView> {
 
   late OrderedSet<TagWithState> _tags;
   late OrderedSet<TagWithState> _selectedTags;
+
+  void updateTags() {
+    final tags = _query != '' 
+      ? storage.selectedTagsBox.values.where((tag) => tag.name.contains(_query)) 
+      : storage.selectedTagsBox.values;
+
+    _tags = OrderedSet<TagWithState>(widget.compare)
+      ..addAll(tags.where((element) => element.type == widget.type));
+    _selectedTags = OrderedSet<TagWithState>(widget.compare)
+      ..addAll(tags.where((element) => element.state != TagState.none));
+    if(kDebugMode)
+      print('${widget.title}: ${widget.tags.length} ${_tags.length} ${_selectedTags.length}.');
+  }
   
   @override
   void setState(VoidCallback fn) {    
-    final tags = _query != '' ? widget.tags.where((element) => element.name.contains(_query)) : widget.tags;
-
-    _tags = OrderedSet<TagWithState>(widget.compare)..addAll(tags.where((element) => element.type == widget.type));
-    _selectedTags = OrderedSet<TagWithState>(widget.compare)..addAll(tags.where((element) => element.state != TagState.none));
-    if(kDebugMode)
-      print('${widget.title}: ${widget.tags.length} ${_tags.length} ${_selectedTags.length}.');
-
+    updateTags();
     super.setState(fn);
   }
 
   @override
   void initState() {
     _query = widget.textEditingController.text;
-    _tags = OrderedSet<TagWithState>(widget.compare)..addAll(widget.tags.where((element) => element.type == widget.type));
-    _selectedTags = OrderedSet<TagWithState>(widget.compare)..addAll(widget.tags.where((element) => element.state != TagState.none));
-    if(kDebugMode)
-      print('${widget.title}: ${widget.tags.length} ${_tags.length} ${_selectedTags.length}.');
 
+    updateTags();
+    
     widget.namedNotifier.addListener(widget.type.toString(), () {
       setState(() {
         _query = widget.textEditingController.text;
@@ -303,7 +308,7 @@ class _TagPageViewState extends State<_TagPageView> {
           (context, index) {
             if(widget.type == null)
               return GestureDetector(
-                onTap: () async => toggle(_selectedTags.elementAt(index)),
+                onTap: () async => preferences.toggleTag(_selectedTags.elementAt(index)).then((value) => setState(() { })),
                 child: TagBlock(
                   tag: _selectedTags.elementAt(index),
                 ),
@@ -311,7 +316,7 @@ class _TagPageViewState extends State<_TagPageView> {
             
             // Typed pages
             return GestureDetector( 
-              onTap: () async => toggle(_tags.elementAt(index)),
+              onTap: () async => preferences.toggleTag(_tags.elementAt(index)).then((value) => setState(() { })),
               child: TagBlock(
                 tag: _tags.elementAt(index),
               ),
@@ -324,13 +329,14 @@ class _TagPageViewState extends State<_TagPageView> {
   );
   
   Future<void> toggle(TagWithState tag) async {
-    final key = storage.selectedTagsBox.toMap().entries.where((e) => e.value.id == tag.id).firstOrNull?.key;
-    if(key != null)
-      storage.selectedTagsBox.delete(key);
+    await preferences.toggleTag(tag);
+    // final key = storage.selectedTagsBox.toMap().entries.where((e) => e.value.id == tag.id).firstOrNull?.key;
+    // if(key != null)
+    //   storage.selectedTagsBox.delete(key);
       
-    await storage.selectedTagsBox.add(tag..state = tag.state.next());
+    // await storage.selectedTagsBox.add(tag..state = tag.state.next());
     setState(() {
-      
+
     });
   }
 
