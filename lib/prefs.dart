@@ -46,17 +46,12 @@ class Preferences {
   Future<void> setResetHistoryOnBoot(bool value) => 
     storage.setBool(kResetHistoryOnBoot, value);
   
-  /// Toggles tag between 3 states: none, included, excluded
-  /// 
-  /// Returns:  
-  /// * -1 if set to excluded 
-  /// * 0 if set to non
-  /// * 1 if set to included
-  Future<int> toggleTag(Tag tag) async {
+  /// Toggles tag between 3 states: none, included, excluded.
+  Future<TagState> toggleTag(Tag tag) async {
     final key = storage.selectedTagsBox.toMap().entries.firstWhereOrNull((e) => e.value.id == tag.id)?.key;
     if(key == null) {
       await storage.selectedTagsBox.add(TagWithState(tag: tag, state: TagState.included));
-      return 1;
+      return TagState.included;
     }
       
     final previous = storage.selectedTagsBox.get(key)!;
@@ -68,7 +63,7 @@ class Preferences {
       ),
     );
 
-    return (previous.state.index + 1) % 3 - 1; 
+    return previous.state.next(); 
   }
 
 }
