@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:nhentai/data_model.dart';
@@ -7,7 +9,9 @@ import '../main.dart';
 import '../screen/pages/book.dart';
 import 'image_builder.dart';
 
-Widget createGalleryCard(BuildContext context, Book book) => GestureDetector(
+Widget createGalleryCard(BuildContext context, Book book) => createGalleryCardWithCallback(null)(context, book);
+
+Widget Function(BuildContext context, Book book) createGalleryCardWithCallback(FutureOr<dynamic> Function()? cb) => (context, book) => GestureDetector(
   onTap: () async {
     if(preferences.recordHistory)
       storage.booksHistoryBox.add(book);
@@ -16,7 +20,10 @@ Widget createGalleryCard(BuildContext context, Book book) => GestureDetector(
         builder: (context) =>
             BookPage(book: book),
       ),
-    );
+    ).then((value) { 
+      if(cb != null)
+        cb();
+    });
   },
   child: Card(
     clipBehavior: Clip.antiAlias,
