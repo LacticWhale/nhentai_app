@@ -8,6 +8,7 @@ import '../../api.dart';
 import '../../functions/image_builder.dart';
 import '../../main.dart';
 import '../../widgets/tag_block.dart';
+import 'home.dart';
 import 'page_viewer.dart';
 
 class BookPage extends StatefulWidget {
@@ -255,8 +256,16 @@ class _BookPageState extends State<BookPage> {
                 onLongPress: () {
                   
                 },
-                onTap: () {
-                  
+                onTap: () async {
+                  Navigator.push(context, 
+                    MaterialPageRoute<void>(
+                      builder: (context) => HomePage(
+                        includedTags: [
+                          TagWithState(tag: e, state: TagState.included),
+                        ],
+                      ),
+                    ),
+                  );
                 },
                 child: TagBlock(
                   tag: TagWithState(
