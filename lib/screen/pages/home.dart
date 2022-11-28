@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/equality.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nhentai/data_model.dart';
@@ -29,6 +30,7 @@ class HomePage extends StatefulWidget {
     this.pages,
     this.includedTags,
     this.excludedTags,
+    this.drawer = true,
     super.key,
   });
 
@@ -38,6 +40,7 @@ class HomePage extends StatefulWidget {
   final String query;
   final int page;
   final int? pages;
+  final bool drawer;
 
   @override
   State<StatefulWidget> createState() => _NewHomePageState();
@@ -50,7 +53,8 @@ class HomePage extends StatefulWidget {
       ..add(IntProperty('page', page))
       ..add(StringProperty('query', query))
       ..add(IterableProperty<Tag>('tagsList', includedTags))
-      ..add(IterableProperty<Tag>('excludedTags', excludedTags));
+      ..add(IterableProperty<Tag>('excludedTags', excludedTags))
+      ..add(DiagnosticsProperty<bool>('drawer', drawer));
   }
 }
 
@@ -62,8 +66,8 @@ class _NewHomePageState extends State<HomePage> {
   late PreloadPageController _pageController;
   late MyNavigationBarController _appNavBarController;
 
-  late Iterable<Tag> _includedTags;
-  late Iterable<Tag> _excludedTags;
+  late List<Tag> _includedTags;
+  late List<Tag> _excludedTags;
 
   String get query => '${widget.query == '' ? '*' : widget.query}${_includedTags.isNotEmpty ? ' ${_includedTags.join(' ')}' : '' }${_excludedTags.isNotEmpty ? ' ${_excludedTags.map((e) => '-$e').join(' ')}' : ''}';
   
@@ -73,10 +77,14 @@ class _NewHomePageState extends State<HomePage> {
 
     final selectedTags = storage.selectedTagsBox.values;
 
-    _includedTags = widget.includedTags 
-      ?? selectedTags.where((tag) => tag.state == TagState.included);
-    _excludedTags = widget.excludedTags 
-      ?? selectedTags.where((tag) => tag.state == TagState.excluded);
+    _includedTags = List.from(widget.includedTags 
+      ?? selectedTags.where((tag) => tag.state == TagState.included));
+    _excludedTags = List.from(widget.excludedTags 
+      ?? selectedTags.where((tag) => tag.state == TagState.excluded));
+
+    if (kDebugMode) 
+      print('${_includedTags.hashCode} ${_excludedTags.hashCode}');
+    
 
     _searchBarController = TextEditingController(
       text: widget.query,
@@ -100,17 +108,6 @@ class _NewHomePageState extends State<HomePage> {
 
     super.dispose();
   }
-
-  Widget buildPage(BuildContext context, Search search) => SliverGrid(
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 2,
-      childAspectRatio: 9/13,
-    ), 
-    delegate: SliverChildBuilderDelegate(
-      createCard(search),
-      childCount: search.pages,
-    ),
-  );
 
   Widget buildInitial(BuildContext context) => FutureBuilder<Search?>(
     // ignore: discarded_futures
@@ -140,7 +137,7 @@ class _NewHomePageState extends State<HomePage> {
 
   Widget buildView(BuildContext context) => Scaffold(
     appBar: appBar,
-    drawer: drawer,
+    drawer: widget.drawer ? drawer : null,
     bottomNavigationBar: bottomNavigationBar,
     body: PreloadPageView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -183,7 +180,7 @@ class _NewHomePageState extends State<HomePage> {
               crossAxisCount: 2,
               childAspectRatio: 9/13,
             ),
-            itemBuilder: (context, index) => createGalleryCard(
+            itemBuilder: (context, index) => createGalleryCardWithCallback(updateIfNeeded)(
               context, 
               search.books.elementAt(index),
             ),
@@ -294,22 +291,7 @@ class _NewHomePageState extends State<HomePage> {
               MaterialPageRoute<void>(
                 builder: (context) => const TagSelectorPage(), 
               ), 
-            ).then((_) {
-              final includedTags = storage.selectedTagsBox.values
-                .where((tag) => tag.state == TagState.included);
-              final excludedTags = storage.selectedTagsBox.values
-                .where((tag) => tag.state == TagState.excluded);
-
-              final newRoute = MaterialPageRoute<void>(
-                builder: (context) => HomePage(
-                  query: widget.query,
-                  includedTags: includedTags,
-                  excludedTags: excludedTags,
-                ),
-              );
-              
-              Navigator.pushReplacement(context, newRoute);
-            });
+            ).then((_) => updateIfNeeded());
           },
         ),
         ListTile(
@@ -437,67 +419,46 @@ class _NewHomePageState extends State<HomePage> {
     },
   );
 
-  Widget Function(BuildContext context, int index) createCard(
-    Search search,
-  ) => (context, index) => GestureDetector(
-    onTap: () async {
-      Navigator.of(context).push(
-        MaterialPageRoute<BookPage>(
-          builder: (context) =>
-              BookPage(book: search.books.elementAt(index)),
-        ),
+  Future<void> openBook(Book book) async {
+    if(kDebugMode)
+      print('b');
+    Navigator.push(context,
+      MaterialPageRoute<void>(
+        builder: (context) =>
+          BookPage(book: book),
+      ),
+    ).then((_) async {
+      if (kDebugMode)
+        print('a');
+      updateIfNeeded();
+    });
+  }
+
+  Future<void> updateIfNeeded() async {
+    final includedTagsIds = storage.selectedTagsBox.values
+      .where((tag) => tag.state == TagState.included).map((tag) => tag.id)
+      .toSet();
+    final excludedTagsIds = storage.selectedTagsBox.values
+      .where((tag) => tag.state == TagState.excluded).map((tag) => tag.id)
+      .toSet(); 
+    
+    final equalsIncluded = const SetEquality<int>().equals(
+      _includedTags.map((tag) => tag.id).toSet(), 
+      includedTagsIds,);
+
+    final equalsExcluded = const SetEquality<int>().equals(
+        _excludedTags.map((tag) => tag.id).toSet(),
+        excludedTagsIds,);
+
+    if(!equalsIncluded || !equalsExcluded) {
+      Navigator.pushReplacement(context, 
+        MaterialPageRoute<void>(builder: (context) => HomePage(
+          query: widget.query,
+        ),),
       );
-    },
-    child: Card(
-      clipBehavior: Clip.antiAlias,
-      margin: const EdgeInsets.only(
-        left: 10,
-        right: 10,
-        top: 20,
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            alignment: Alignment.center,
-            child: CachedNetworkImage(
-              alignment: Alignment.center,
-              imageUrl: search.books
-                  .elementAt(index)
-                  .cover
-                  .getUrl(api: api)
-                  .toString(),
-              httpHeaders: MyApp.headers,
-              progressIndicatorBuilder:
-                  (context, url, downloadProgress) => Center(
-                child: CircularProgressIndicator(
-                    value: downloadProgress.progress,),
-              ),
-              errorWidget: (context, url, error) =>
-                  const Icon(Icons.error),
-              imageBuilder: blurredImageBuilder,
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: FractionallySizedBox(
-              widthFactor: 1,
-              heightFactor: 1 / 5,
-              child: Container(
-                alignment: Alignment.center,
-                color: Colors.black.withAlpha(120),
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  search.books.elementAt(index).title.pretty,
-                  overflow: TextOverflow.fade,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+    }
+  }
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);

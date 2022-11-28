@@ -198,7 +198,11 @@ class _BookPageState extends State<BookPage> {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(const SnackBar(
-                  content: Text('Book id copied to your clipboard!'),
+                  content: Text('Book id copied to your clipboard!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   backgroundColor: Colors.white60,
                 ),);
             });
@@ -208,7 +212,11 @@ class _BookPageState extends State<BookPage> {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(const SnackBar(
-                  content: Text('Pretty title copied to your clipboard!'),
+                  content: Text('Pretty title copied to your clipboard!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   backgroundColor: Colors.white60,
                 ),);
             });
@@ -240,28 +248,57 @@ class _BookPageState extends State<BookPage> {
         'Groups': widget.book.tags.groups,
         'Languages': widget.book.tags.languages,
         'Categories': widget.book.tags.categories,
-      }.entries.map<Widget?>((e) => e.value.isNotEmpty 
+      }.entries.map<Widget?>((entry) => entry.value.isNotEmpty 
         ? Padding(
           padding: const EdgeInsets.only(left: 8.0),
           child: Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('${e.key}: ',
+              Text('${entry.key}: ',
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              ...(e.value.toList()..sort((a, b) => -a.count.compareTo(b.count)))
-                .map((e) => GestureDetector(
-                onLongPress: () {
-                  
+              ...(entry.value.toList()..sort((a, b) => -a.count.compareTo(b.count)))
+                .map((tag) => GestureDetector(
+                onLongPress: () async {
+                  preferences.toggleTag(tag).then((state) {
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: Text.rich(TextSpan(
+                          text: 'Tag ',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: tag.name,
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            TextSpan(
+                              text: state == TagState.none 
+                                ? 'unselected.'
+                                : state == TagState.included
+                                  ? 'included.'
+                                  : 'excluded.',
+                            ),
+                          ],
+                        ),),
+                        backgroundColor: Colors.white60,
+                      ),);
+                  });
                 },
                 onTap: () async {
                   Navigator.push(context, 
                     MaterialPageRoute<void>(
                       builder: (context) => HomePage(
+                        drawer: false,
                         includedTags: [
-                          TagWithState(tag: e, state: TagState.included),
+                          TagWithState(tag: tag, state: TagState.included),
                         ],
                       ),
                     ),
@@ -269,7 +306,7 @@ class _BookPageState extends State<BookPage> {
                 },
                 child: TagBlock(
                   tag: TagWithState(
-                    tag: e,
+                    tag: tag,
                     state: TagState.none, 
                   ),
                 ),
