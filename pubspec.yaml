@@ -8,6 +8,8 @@ environment:
   sdk: ">=2.17.6 <3.0.0"
 
 dependencies:
+  after_layout: ^1.2.0
+  app_links: ^3.3.0
   binary:
     git: https://github.com/dart-portals/binary
   blur: ^3.1.0
@@ -15,6 +17,7 @@ dependencies:
   collection: ^1.16.0
   core_mixins: ^1.0.2
   cupertino_icons: ^1.0.2
+  domain_verification_manager: ^1.0.0
   dynamic_layouts:
     git:
       url: https://@github.com/flutter/packages.git
@@ -35,6 +38,7 @@ dependencies:
   path: ^1.8.1
   path_provider: ^2.0.11
   preload_page_view: ^0.1.6
+  share_plus: ^6.3.0
   socks5_proxy: ^1.0.2
   webview_cookie_manager: ^2.0.6
   webview_flutter: ^3.0.4

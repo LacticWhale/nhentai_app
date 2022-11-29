@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nhentai/data_model_prefixed.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../api.dart';
 import '../../functions/image_builder.dart';
@@ -57,12 +58,16 @@ class _BookPageState extends State<BookPage> {
                 floating: true,
                 actions: [
                   IconButton(
+                    onPressed: () async => Share.share('${widget.book.title.pretty}\nhttps://nhentai.net/g/${widget.book.id}'),
+                    icon: const Icon(Icons.share),
+                  ),
+                  IconButton(
                     onPressed: () async {
                       await preferences.setPagesPerRow(preferences.pagesPerRow % 4 + 1);
                       setState(() { });
                     },
                     icon: const Icon(Icons.grid_view_sharp),
-                  ),
+                  )
                 ],
               ),
               buildDescription(context),
