@@ -121,11 +121,34 @@ class _NewHomePageState extends State<HomePage> {
 
       if(snapshot.error != null) 
         // TODO: report error.
-        return tryAgain;
-
-      if(snapshot.data == null)
-        // TODO: page is empty???
-        return tryAgain;
+        return Material(
+          child: SafeArea(
+            child: Scaffold(
+              appBar: AppBar(),
+              drawer: widget.drawer ? drawer : null,
+              body: Center(
+                child: Card(
+                  child: TextButton(
+                    child: const Text('Update cookies..'),
+                    onPressed: () async {
+                      (api.client as HttpClientWithCookies)
+                        .cookieManager
+                        .clearCookies()
+                        .then((value) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (context) => const NHentaiWebView(),
+                            ),
+                          );
+                        }).then((value) => setState(() {}));
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
 
       final search = snapshot.data!;
       _pages = search.pages;
@@ -165,12 +188,12 @@ class _NewHomePageState extends State<HomePage> {
             // }
             // TODO: report error.
             debugPrint(snapshot.error.toString());
-            return tryAgainBody;
+            return const Material(
+              child: Center(
+                child: Text('Page doesn\'t exist.'),
+              ),
+            );
           }
-
-          if(snapshot.data == null)
-            // TODO: page is empty???
-            return tryAgainBody;
 
           final search = snapshot.data!;
           _pages = search.pages;
@@ -203,56 +226,6 @@ class _NewHomePageState extends State<HomePage> {
     // Look for num of pages and create page or create page.
     return buildView(context);
   }
-
-  Widget get tryAgainBody => Center(
-    child: Column(
-      children: [
-        Card(
-          child: TextButton(
-            child: const Text('Update cookies?'),
-            onPressed: () async {
-              (api.client as HttpClientWithCookies)
-                  .cookieManager
-                  .clearCookies()
-                  .then((value) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (context) => const NHentaiWebView(),
-                  ),
-                ).then((value) => setState(() { }),);
-              });
-            },
-          ),
-        ),
-        Card(
-          child: TextButton(
-            child: const Text('Reload.'),
-            onPressed: () async {
-              // Navigator.pushReplacement(context, 
-              //   MaterialPageRoute(builder: (context) => HomePage(
-              //     query: widget.query,
-              //     page: _page,
-              //     searchSort: widget.searchSort,
-              //   ),
-              // ),);
-              setState(() {
-                _page = _page;
-                _pages = _pages;
-              });
-            },
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Scaffold get tryAgain => Scaffold(
-    appBar: appBar,
-    drawer: drawer,
-    body: tryAgainBody,
-    // bottomNavigationBar: bottomNavigationBar,
-  );
 
   Widget get loadingBody => const Center(
     child: CircularProgressIndicator(),
