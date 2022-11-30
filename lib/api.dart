@@ -46,6 +46,11 @@ class HttpClientWithCookies with HttpClientMixin implements HttpClient {
     return cachedCookie = cfClearance.first;
   }
 
+  Future<void> clearCookies() async {
+    cachedCookie = null;
+    return cookieManager.clearCookies();
+  }
+
   @override
   Future<HttpClientRequest> getUrl(Uri url) async {
     final request = await super.openUrl('GET', url);

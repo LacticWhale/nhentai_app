@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/equality.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:nhentai/data_model.dart';
@@ -10,7 +9,6 @@ import 'package:preload_page_view/preload_page_view.dart';
 
 import '../../api.dart';
 import '../../functions/create_gallery_card.dart';
-import '../../functions/image_builder.dart';
 import '../../main.dart';
 import '../../widgets/my_navigation_bar.dart';
 import '../../widgets/selector.dart';
@@ -78,9 +76,9 @@ class _NewHomePageState extends State<HomePage> {
     final selectedTags = storage.selectedTagsBox.values;
 
     _includedTags = List.from(widget.includedTags 
-      ?? selectedTags.where((tag) => tag.state == TagState.included));
+      ?? selectedTags.where((tag) => tag.state == TagState.included),);
     _excludedTags = List.from(widget.excludedTags 
-      ?? selectedTags.where((tag) => tag.state == TagState.excluded));
+      ?? selectedTags.where((tag) => tag.state == TagState.excluded),);
 
     if (kDebugMode) 
       print('${_includedTags.hashCode} ${_excludedTags.hashCode}');
@@ -119,8 +117,7 @@ class _NewHomePageState extends State<HomePage> {
       if(snapshot.connectionState != ConnectionState.done)
         return loading;
 
-      if(snapshot.error != null) 
-        // TODO: report error.
+      if(snapshot.error != null || snapshot.data == null) 
         return Material(
           child: SafeArea(
             child: Scaffold(
@@ -129,19 +126,16 @@ class _NewHomePageState extends State<HomePage> {
               body: Center(
                 child: Card(
                   child: TextButton(
-                    child: const Text('Update cookies..'),
+                    child: const Text('Update cookies.'),
                     onPressed: () async {
                       (api.client as HttpClientWithCookies)
-                        .cookieManager
                         .clearCookies()
-                        .then((value) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (context) => const NHentaiWebView(),
-                            ),
-                          );
-                        }).then((value) => setState(() {}));
+                        .then((value) => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (context) => const NHentaiWebView(),
+                          ),
+                        ).then((value) => setState(() { })),);
                     },
                   ),
                 ),
@@ -178,7 +172,7 @@ class _NewHomePageState extends State<HomePage> {
           if(snapshot.connectionState != ConnectionState.done)
             return loadingBody;
 
-          if(snapshot.error != null) {
+          if(snapshot.error != null || snapshot.data == null) {
             // if(snapshot.error != null && snapshot.error is APIException) {
             //   // debugPrint((snapshot.error! as APIException).message);
             //   // if((snapshot.error! as APIException).message == 'does not exist') {
