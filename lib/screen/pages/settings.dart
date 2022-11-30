@@ -108,26 +108,28 @@ class _SettingsPageState extends State<SettingsPage> with AfterLayoutMixin<Setti
     child: SafeArea(
       child: SettingsScreen(
         children: [
-          SettingsGroup(
-            title: 'History',
-            children: [
+          // SettingsGroup(
+          //   title: 'History',
+          //   children: [
               SwitchSettingsTile(
                 title: 'Record view book history', 
                 enabledLabel: 'You can find viewed books in history page.',
                 disabledLabel: 'Disabling record doesn\'t clear history!',
                 leading: const Icon(Icons.save),
                 settingKey: Preferences.kRecordHistory,
+                defaultValue: preferences.recordHistory,
                 childrenIfEnabled: [
                   SwitchSettingsTile(
                     title: 'Reset history',
                     settingKey: Preferences.kResetHistoryOnBoot,
+                    defaultValue: preferences.resetHistoryOnBoot,
                     enabledLabel: 'History will be cleared on app launch.',
                     disabledLabel: 'History stay on app relaunch.',
                   ),
                 ],
               ),
-            ],
-          ),
+          //   ],
+          // ),
           if(_isSupported)
             ListTile(
               leading: _domainStateSelected.isNotEmpty 
