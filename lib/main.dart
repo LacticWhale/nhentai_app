@@ -53,7 +53,7 @@ void main() async {
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  static final String userAgent = 'nhentai_app/1.0.1 ${Platform.operatingSystem}';
+  static final String userAgent = 'nhentai_app/1.0.2 ${Platform.operatingSystem}';
 
   static Map<String, String> get headers => {
       'set-cookies': (api.client as HttpClientWithCookies).cachedCookie.toString(),
