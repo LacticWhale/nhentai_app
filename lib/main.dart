@@ -45,6 +45,7 @@ void main() async {
           onSurface: Colors.black,
         ),
       ),
+      themeMode: ThemeMode.dark,
       home: const MyApp(),
     ),
   );
