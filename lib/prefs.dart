@@ -29,6 +29,7 @@ class Preferences {
   static const kBlurImages = 'blur_images';
   static const kRecordHistory = 'record_history';
   static const kResetHistoryOnBoot = 'reset_history_on_boot';
+  static const kSearchSort = 'search_sort';
 
   int get pagesPerRow => storage.getInt(kPagesPerRow) ?? 2;
   Future<void> setPagesPerRow(int value) => 
@@ -45,6 +46,10 @@ class Preferences {
   bool get resetHistoryOnBoot => storage.getBool(kResetHistoryOnBoot) ?? false;
   Future<void> setResetHistoryOnBoot(bool value) => 
     storage.setBool(kResetHistoryOnBoot, value);
+
+  SearchSort get searchSort => SearchSort.values[storage.getInt(kSearchSort) ?? 1];
+  Future<void> setSearchSort(SearchSort value) =>
+    storage.setInt(kSearchSort, value.index);
   
   /// Toggles tag between 3 states: none, included, excluded.
   Future<TagState> toggleTag(Tag tag) async {
