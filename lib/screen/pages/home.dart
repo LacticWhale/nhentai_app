@@ -321,6 +321,8 @@ class _NewHomePageState extends State<HomePage> {
                   query: widget.query,
                   page: 1,
                   searchSort: _selectedSearchSort,
+                  includedTags: widget.includedTags,
+                  excludedTags: widget.excludedTags,
                 ),
               ),
             // ),
