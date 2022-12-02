@@ -24,7 +24,6 @@ class HomePage extends StatefulWidget {
   const HomePage({
     this.query = '',
     this.page = 1,
-    this.searchSort,
     this.pages,
     this.includedTags,
     this.excludedTags,
@@ -32,7 +31,6 @@ class HomePage extends StatefulWidget {
     super.key,
   });
 
-  final SearchSort? searchSort;
   final Iterable<Tag>? includedTags;
   final Iterable<Tag>? excludedTags;
   final String query;
@@ -46,7 +44,6 @@ class HomePage extends StatefulWidget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(EnumProperty<SearchSort>('searchSort', searchSort))
       ..add(IntProperty('pages', pages))
       ..add(IntProperty('page', page))
       ..add(StringProperty('query', query))
@@ -292,7 +289,6 @@ class _NewHomePageState extends State<HomePage> {
                 query: widget.query,
                 page: _page,
                 pages: _pages,
-                searchSort: widget.searchSort,
               ),),
             ),);
           },
@@ -312,7 +308,6 @@ class _NewHomePageState extends State<HomePage> {
             MaterialPageRoute<void>(builder: (context) => HomePage(
                 query: _searchBarController.text,
                 page: 1,
-                searchSort: widget.searchSort,
               ),
             ),
           );
@@ -327,7 +322,6 @@ class _NewHomePageState extends State<HomePage> {
               MaterialPageRoute<void>(builder: (context) => HomePage(
                   query: widget.query,
                   page: 1,
-                  searchSort: _selectedSearchSort,
                   includedTags: widget.includedTags,
                   excludedTags: widget.excludedTags,
                 ),
@@ -338,27 +332,27 @@ class _NewHomePageState extends State<HomePage> {
         itemBuilder: (context) => [
           PopupMenuItem(
             value: SearchSort.recent,
-            enabled: widget.searchSort != SearchSort.recent,
+            enabled: _searchSort != SearchSort.recent,
             child: const Text('Recent'),
           ),
           PopupMenuItem(
             value: SearchSort.popular,
-            enabled: widget.searchSort != SearchSort.popular,
+            enabled: _searchSort != SearchSort.popular,
             child: const Text('Popular'),
           ),
           PopupMenuItem(
             value: SearchSort.popularToday,
-            enabled: widget.searchSort != SearchSort.popularToday,
+            enabled: _searchSort != SearchSort.popularToday,
             child: const Text('Popular today'),
           ),
           PopupMenuItem(
             value: SearchSort.popularWeek,
-            enabled: widget.searchSort != SearchSort.popularWeek,
+            enabled: _searchSort != SearchSort.popularWeek,
             child: const Text('Popular week'),
           ),
           PopupMenuItem(
             value: SearchSort.popularMonth,
-            enabled: widget.searchSort != SearchSort.popularMonth,
+            enabled: _searchSort != SearchSort.popularMonth,
             child: const Text('Popular month'),
           ),
         ],
