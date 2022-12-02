@@ -24,7 +24,7 @@ class HomePage extends StatefulWidget {
   const HomePage({
     this.query = '',
     this.page = 1,
-    this.searchSort = SearchSort.popular,
+    this.searchSort,
     this.pages,
     this.includedTags,
     this.excludedTags,
@@ -32,7 +32,7 @@ class HomePage extends StatefulWidget {
     super.key,
   });
 
-  final SearchSort searchSort;
+  final SearchSort? searchSort;
   final Iterable<Tag>? includedTags;
   final Iterable<Tag>? excludedTags;
   final String query;
@@ -60,6 +60,8 @@ class _NewHomePageState extends State<HomePage> {
   late int _page;
   int? _pages;
 
+  late SearchSort _searchSort;
+
   late TextEditingController _searchBarController;
   late PreloadPageController _pageController;
   late MyNavigationBarController _appNavBarController;
@@ -67,13 +69,14 @@ class _NewHomePageState extends State<HomePage> {
   late List<Tag> _includedTags;
   late List<Tag> _excludedTags;
 
-  String get query => '${widget.query == '' ? '*' : widget.query}${_includedTags.isNotEmpty ? ' ${_includedTags.join(' ')}' : '' }${_excludedTags.isNotEmpty ? ' ${_excludedTags.map((e) => '-$e').join(' ')}' : ''}';
+  String get _query => '${widget.query == '' ? '*' : widget.query}${_includedTags.isNotEmpty ? ' ${_includedTags.join(' ')}' : '' }${_excludedTags.isNotEmpty ? ' ${_excludedTags.map((e) => '-$e').join(' ')}' : ''}';
   
   @override
   void initState() {
     _page = widget.page;
 
     final selectedTags = storage.selectedTagsBox.values;
+    _searchSort = preferences.searchSort;
 
     _includedTags = List.from(widget.includedTags 
       ?? selectedTags.where((tag) => tag.state == TagState.included),);
@@ -109,8 +112,8 @@ class _NewHomePageState extends State<HomePage> {
 
   Widget buildInitial(BuildContext context) => FutureBuilder<Search?>(
     // ignore: discarded_futures
-    future: api.searchSinglePage(query,
-      sort: widget.searchSort,
+    future: api.searchSinglePage(_query,
+      sort: _searchSort,
       page: widget.page,
     ),
     builder: (context, snapshot) {
@@ -164,8 +167,8 @@ class _NewHomePageState extends State<HomePage> {
       itemCount: _pages! - 1,
       itemBuilder: (context, index) => FutureBuilder<Search?>(
         // ignore: discarded_futures
-        future: api.searchSinglePage(query,
-          sort: widget.searchSort,
+        future: api.searchSinglePage(_query,
+          sort: _searchSort,
           page: index + 1,
         ),
         builder: (context, snapshot) {
@@ -173,18 +176,22 @@ class _NewHomePageState extends State<HomePage> {
             return loadingBody;
 
           if(snapshot.error != null || snapshot.data == null) {
-            // if(snapshot.error != null && snapshot.error is APIException) {
-            //   // debugPrint((snapshot.error! as APIException).message);
-            //   // if((snapshot.error! as APIException).message == 'does not exist') {
-            //   //   debugPrint('${index + 2}');
-            //   //   _pageController.jumpToPage(index + 2);
-            //   // }
-            // }
-            // TODO: report error.
-            debugPrint(snapshot.error.toString());
+            if(snapshot.error is APIException) {
+              if((snapshot.error! as APIException).message == 'does not exist') {
+                return const Material(
+                  child: Center(
+                    child: Text('Page doesn\'t exist.'),
+                  ),
+                );
+              }
+            }
+            // Unknown error
+            if(kDebugMode)
+              print(snapshot.error);
+            
             return const Material(
               child: Center(
-                child: Text('Page doesn\'t exist.'),
+                child: Text('Unknown error happened while loading this page.'),
               ),
             );
           }
@@ -315,7 +322,7 @@ class _NewHomePageState extends State<HomePage> {
       PopupMenuButton<SearchSort>(
         icon: const Icon(Icons.sort),
         onSelected: (_selectedSearchSort) async {
-          // preferences.setSearchSort(_selectedSearchSort).then((value) => 
+          preferences.setSearchSort(_selectedSearchSort).then((value) => 
             Navigator.pushReplacement(context, 
               MaterialPageRoute<void>(builder: (context) => HomePage(
                   query: widget.query,
@@ -325,7 +332,7 @@ class _NewHomePageState extends State<HomePage> {
                   excludedTags: widget.excludedTags,
                 ),
               ),
-            // ),
+            ),
           );
         },
         itemBuilder: (context) => [
@@ -376,7 +383,6 @@ class _NewHomePageState extends State<HomePage> {
           builder: (context, setInnerState) => Selector(
             pages: _pages!,
             page: _page,
-            // onJump: (index) => setState(() => _page = index),
             onJump: (page) => _pageController.jumpToPage(page),
           ),
         ),
@@ -426,12 +432,6 @@ class _NewHomePageState extends State<HomePage> {
         ),),
       );
     }
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(StringProperty('query', query));
   }
 
 }
