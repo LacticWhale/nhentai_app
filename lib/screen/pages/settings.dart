@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:after_layout/after_layout.dart';
 import 'package:domain_verification_manager/domain_verification_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +16,7 @@ class SettingsPage extends StatefulWidget {
   State<StatefulWidget> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> with AfterLayoutMixin<SettingsPage>, WidgetsBindingObserver {
+class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver {
   bool _isSupported = false;
   List<String> _domainStateSelected = [];
 
@@ -41,16 +40,10 @@ class _SettingsPageState extends State<SettingsPage> with AfterLayoutMixin<Setti
       print(state);
     if(state == AppLifecycleState.resumed) {
       if(_isSupported) 
-        await getDomainStateSelected();
+        setState(() { });
     }
     
     super.didChangeAppLifecycleState(state);
-  }
-
-  @override
-  FutureOr<void> afterFirstLayout(BuildContext context) async {
-    if (await getIsSupported())
-      getDomainStateSelected();
   }
 
   Future<bool> getIsSupported() async {
@@ -62,14 +55,8 @@ class _SettingsPageState extends State<SettingsPage> with AfterLayoutMixin<Setti
       if(kDebugMode)
         print('DomainVerificationManager unsupported platform.');
     }
-    if (!mounted)
-      return result;
-
-    setState(() {
-      _isSupported = result;
-    });
-
-    return result;
+    
+    return _isSupported = result; 
   }
 
   Future<void> getDomainStateSelected() async {
@@ -80,15 +67,8 @@ class _SettingsPageState extends State<SettingsPage> with AfterLayoutMixin<Setti
       if(kDebugMode)
         print('DomainVerificationManager unsupported platform.');
     }
-    if(kDebugMode)
-      print(mounted);
-
-    if (!mounted)
-      return;
-
-    setState(() {
-      _domainStateSelected = result ?? [];
-    });
+    
+    _domainStateSelected = result ?? [];
   }
 
   Future<void> domainRequest() async {
@@ -130,30 +110,45 @@ class _SettingsPageState extends State<SettingsPage> with AfterLayoutMixin<Setti
               ),
           //   ],
           // ),
-          if(_isSupported)
-            ListTile(
-              leading: _domainStateSelected.isNotEmpty 
-                ? const Icon(Icons.link) 
-                : const Icon(Icons.link_off),
-              title: Text(
-                'App links',
-                style: Theme.of(context).textTheme.headline6?.copyWith(fontSize: 16.0),
-              ),
-              subtitle: Text(
-                _domainStateSelected.isNotEmpty 
-                  ? 'nhentai.net urls will be opened in app' 
-                  : 'nhentai.net urls will be opened in browser',
-                style: Theme.of(context).textTheme.subtitle2
-                  ?.copyWith(fontSize: 13.0, fontWeight: FontWeight.normal),  
-              ),
-              onTap: () async => DomainVerificationManager.domainRequest(),
-              trailing: Switch.adaptive(
-                value: _domainStateSelected.isNotEmpty,
-                onChanged: (_) async => DomainVerificationManager.domainRequest(),
-                activeColor: Theme.of(context).colorScheme.secondary,
-              ),
-              dense: true,
-            ),
+          FutureBuilder<void>(
+            // ignore: discarded_futures
+            future: (() async {
+              if(await getIsSupported())
+                await getDomainStateSelected();
+            })(),
+            builder: (context, snapshot) {
+              print(snapshot);
+              if(snapshot.connectionState != ConnectionState.done)
+                return const SizedBox.shrink();
+              
+              if(!_isSupported)
+                return const SizedBox.shrink();
+
+              return ListTile(
+                leading: _domainStateSelected.isNotEmpty 
+                  ? const Icon(Icons.link) 
+                  : const Icon(Icons.link_off),
+                title: Text(
+                  'App links',
+                  style: Theme.of(context).textTheme.headline6?.copyWith(fontSize: 16.0),
+                ),
+                subtitle: Text(
+                  _domainStateSelected.isNotEmpty 
+                    ? 'nhentai.net urls will be opened in app' 
+                    : 'nhentai.net urls will be opened in browser',
+                  style: Theme.of(context).textTheme.subtitle2
+                    ?.copyWith(fontSize: 13.0, fontWeight: FontWeight.normal),  
+                ),
+                onTap: () async => DomainVerificationManager.domainRequest(),
+                trailing: Switch.adaptive(
+                  value: _domainStateSelected.isNotEmpty,
+                  onChanged: (_) async => DomainVerificationManager.domainRequest(),
+                  activeColor: Theme.of(context).colorScheme.secondary,
+                ),
+                dense: true,
+              );
+            },
+          ),
           SimpleSettingsTile(
             title: 'Update tags',
             leading: const Icon(Icons.update),
@@ -168,7 +163,10 @@ class _SettingsPageState extends State<SettingsPage> with AfterLayoutMixin<Setti
             leading: Icon(preferences.blurImages ? Icons.blur_on : Icons.blur_off),
             enabledLabel: 'Images on screen are blurred.',
             disabledLabel: 'Images shown as is.',
-            onChange: (_) => setState(() {}),
+            onChange: (value) {
+              if(kDebugMode)
+                print('${Preferences.kBlurImages}: $value');
+            },
           ),
         ],
       ),
