@@ -65,6 +65,7 @@ Widget Function(BuildContext context, Book book) createGalleryCardWithCallback(F
               padding: const EdgeInsets.all(8),
               child: Text(
                 book.title.pretty,
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.fade,
               ),
             ),
