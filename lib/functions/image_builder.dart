@@ -16,7 +16,7 @@ Widget blurredImageBuilder(BuildContext context, ImageProvider<Object> imageProv
       child: Blur(
         blur: preferences.blurImages ? 20 : 0,
         blurColor: Colors.black,
-        colorOpacity: 0.2,
+        colorOpacity: preferences.blurImages ? 0.2 : 0.0,
         child: DecoratedBox(
           decoration: BoxDecoration(
             image: DecorationImage(
