@@ -66,7 +66,7 @@ class _NewHomePageState extends State<HomePage> {
   late List<Tag> _includedTags;
   late List<Tag> _excludedTags;
 
-  String get _query => '${widget.query == '' ? '*' : widget.query}${_includedTags.isNotEmpty ? ' ${_includedTags.join(' ')}' : '' }${_excludedTags.isNotEmpty ? ' ${_excludedTags.map((e) => '-$e').join(' ')}' : ''}';
+  String get _query => '${widget.query == '' ? '*' : widget.query}${_includedTags.isNotEmpty ? ' ${_includedTags.map((e) => '"$e"').join(' ')}' : '' }${_excludedTags.isNotEmpty ? ' ${_excludedTags.map((e) => '-"$e"').join(' ')}' : ''}';
   
   @override
   void initState() {
