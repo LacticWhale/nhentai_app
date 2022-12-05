@@ -2,7 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nhentai/data_model.dart';
 import 'package:nhentai/data_model_prefixed.dart';
+import 'package:path/path.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../api.dart';
@@ -33,6 +35,10 @@ class BookPage extends StatefulWidget {
 class _BookPageState extends State<BookPage> {
   bool _wrapEnglish = false;
   bool _wrapJapanese = false;
+  
+  List<Comment>? _comments;
+  
+  bool _commentsLoaded = false;
 
   bool get _isFavorite => storage.favoriteBooksBox.containsKey(widget.book.id);
 
@@ -130,6 +136,23 @@ class _BookPageState extends State<BookPage> {
                     childCount: widget.book.pages.length,
                   ),
                 ),
+              if(!_commentsLoaded)
+                SliverList(
+                  delegate: SliverChildListDelegate([
+                    ElevatedButton(
+                      onPressed: () async {
+                        _comments = await api.getComments(widget.book.id);
+                        _commentsLoaded = true;
+                        setState(() {
+                          
+                        });
+                      },
+                      child: const Text('Load comments'),
+                    )
+                  ]),
+                )
+              else
+                buildCommentSection(context, _comments!),
             ],
           ),
         ),
@@ -337,6 +360,58 @@ class _BookPageState extends State<BookPage> {
         ),),
       ),
     ],),
+  );
+
+  Widget buildCommentSection(BuildContext context, List<Comment> comments) => SliverList(
+    delegate: SliverChildBuilderDelegate(
+      (context, index) => Card(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              alignment: Alignment.topLeft,
+              margin: const EdgeInsets.only(left: 8.0, top: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CachedNetworkImage(
+                    alignment: Alignment.center,
+                    imageUrl: join(api.hosts.image.getUri().toString(), 'avatars', comments.elementAt(index).author.avatarFilename),
+                    httpHeaders: MyApp.headers,
+                    progressIndicatorBuilder:
+                        (context, url, downloadProgress) => Center(
+                      child: CircularProgressIndicator(
+                          value: downloadProgress.progress,),
+                    ),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.error),
+                    imageBuilder: (context, imageProvider) => CircleAvatar(
+                      foregroundImage: imageProvider,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Text(comments.elementAt(index).author.username),
+                  ),
+                  Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Text(DateTime.now().difference(comments.elementAt(index).date).toString()),
+                  )
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.centerLeft,
+              margin: const EdgeInsets.all(16.0),
+              child: Text(comments.elementAt(index).body),
+            ),
+          ]
+        ),
+      ),
+      childCount: comments.length,
+    ),
   );
 
   Widget createPageCard(BuildContext context, int index) => GestureDetector(
