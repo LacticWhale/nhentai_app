@@ -34,7 +34,7 @@ jobs:
       - run: echo ${{ steps.decode_keystore.outputs.filePath }}
       - run: flutter pub get
       
-      - run: flutter build apk --release --no-sound-null-safety
+      - run: flutter build apk --release
         env:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
