@@ -294,49 +294,73 @@ class _TagPageViewState extends State<_TagPageView> {
   }
 
   @override
-  Widget build(BuildContext context) => CustomScrollView(
-    slivers: [
-      DynamicSliverGrid(
-        gridDelegate: const SliverGridDelegateWithWrapping(
-          mainAxisSpacing: 0,
-          crossAxisSpacing: 0,
-          childCrossAxisExtent: double.infinity,
-          childMainAxisExtent: double.infinity,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if(widget.type == null)
-              return GestureDetector(
-                onTap: () async => preferences.toggleTag(_selectedTags.elementAt(index)).then((value) => setState(() { })),
-                child: TagBlock(
-                  tag: _selectedTags.elementAt(index),
-                ),
-              );
+  Widget build(BuildContext context) {
+    if(widget.type == null)
+      return CustomScrollView(
+        slivers: data.entries
+          .where((dataEntry) => dataEntry.value != null)
+          .map<List<Widget>>((dataEntry) {
+            final list = _selectedTags.where((tag) => tag.type == dataEntry.value).toList();
             
-            // Typed pages
-            return GestureDetector( 
-              onTap: () async => preferences.toggleTag(_tags.elementAt(index)).then((value) => setState(() { })),
-              child: TagBlock(
-                tag: _tags.elementAt(index),
+            if(list.isEmpty)
+              return [];
+            return [
+              SliverList(
+                delegate: SliverChildListDelegate([
+                  Container(
+                    margin: const EdgeInsets.only(top: 2.0),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Colors.grey,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8.0, bottom: 2.0),
+                      child: Text(dataEntry.key,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),  
+                ]),
               ),
-            );
-          },
-          childCount: widget.type == null ? _selectedTags.length : _tags.length,
-        ),
-      ),
-    ],
-  );
-  
-  Future<void> toggle(TagWithState tag) async {
-    await preferences.toggleTag(tag);
-    // final key = storage.selectedTagsBox.toMap().entries.where((e) => e.value.id == tag.id).firstOrNull?.key;
-    // if(key != null)
-    //   storage.selectedTagsBox.delete(key);
-      
-    // await storage.selectedTagsBox.add(tag..state = tag.state.next());
-    setState(() {
-
-    });
+              DynamicSliverGrid(
+                gridDelegate: const SliverGridDelegateWithWrapping(), 
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => GestureDetector(
+                    onTap: () async => preferences.toggleTag(list.elementAt(index)).then((value) => setState(() { })),
+                    child: TagBlock(
+                      tag: list.elementAt(index),
+                    ),
+                  ),
+                  childCount: list.length,
+                ),
+              ),
+            ];
+          })
+          .expand((element) => element).toList(),
+      );
+    else
+      return CustomScrollView(
+        slivers: [
+          DynamicSliverGrid(
+            gridDelegate: const SliverGridDelegateWithWrapping(),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => GestureDetector( 
+                onTap: () async => preferences.toggleTag(_tags.elementAt(index)).then((value) => setState(() { })),
+                child: TagBlock(
+                  tag: _tags.elementAt(index),
+                ),
+              ),
+              childCount: _tags.length,
+            ),
+          ),
+        ],
+      );
   }
 
 }
