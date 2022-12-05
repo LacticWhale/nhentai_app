@@ -89,7 +89,6 @@ class _NewHomePageState extends State<HomePage> {
     );
     _pageController = PreloadPageController(
       initialPage: _page - 1,
-      viewportFraction: 0.99,
     );
     _appNavBarController = MyNavigationBarController(
       initialPage: _page,
