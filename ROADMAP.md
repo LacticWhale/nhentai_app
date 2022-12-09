@@ -1,15 +1,19 @@
 # Roadmap 
-
-- [ ] Rework error handling on home page.
-    - Require to fix [`nhentai`](https://github.com/Zekfad/nhentai_dart) error handling.
-- Search:
-    - [ ] Support for all official query features.
-    - [ ] Save current query and tags.
-- Authentication:
-    - [ ] Submitting comments.
-    - [ ] Remote favourites.
-    - [ ] Profile viewer. 
-- Autoupdate:
-    - [ ] Application update.
-    - [ ] Global tag list update.
-- [ ] Download books. (request)
+- Internal:
+    - [ ] Rework storage.
+        - Remove `hive`, `flutter_hive`, `binary` dependencies.
+        - Store data in json format.
+    - [ ] Global tag list schedule generation.
+    - [ ] App autoupdate.
+    - [ ] Rework error handling on home page.
+        - Require to fix [`nhentai`](https://github.com/Zekfad/nhentai_dart) error handling.
+- UX:
+    - Search:
+        - [ ] Support for all official query features.
+        - [ ] Save current query and tags.
+    - Authentication:
+        - [ ] Submitting comments.
+        - [ ] Remote favourites.
+        - [ ] Profile viewer. 
+    - Others:
+        - [ ] Download books. (request)
