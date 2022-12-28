@@ -1,19 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
-// ignore: import_of_legacy_library_into_null_safe
-import 'package:binary/binary.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nhentai/data_model.dart';
+import 'package:nhentai/data_model_prefixed.dart';
 
-import 'adapters/tag_adapter.dart';
 import 'main.dart';
 import 'storage/book.dart';
-import 'storage/book_title.dart';
-import 'storage/image.dart';
-import 'storage/image_type.dart';
 import 'storage/tag.dart';
 import 'storage/tag_with_state.dart';
 import 'widgets/tag_block.dart';
@@ -144,16 +140,14 @@ class Storage implements CacheProvider {
   Future<void> init() async {
     await Hive.initFlutter();
 
-    TagAdapter().registerForId(1);  
-    const AdapterForList<Tag>().registerForId(2);
+    await Hive.deleteBoxFromDisk(Storage._favoriteBooks);
+    await Hive.deleteBoxFromDisk(Storage._bookHistory);
+    await Hive.deleteBoxFromDisk(Storage._selectedTags);
 
     Hive
+      ..registerAdapter(HiveTagAdapter())
       ..registerAdapter(HiveTagWithStateAdapter())
-      ..registerAdapter(HiveBookTitleAdapter())
-      ..registerAdapter(HiveImageTypeAdapter())
-      ..registerAdapter(HiveImageAdapter())
-      ..registerAdapter(HiveBookAdapter())
-      ..registerAdapter(HiveTagAdapter());
+      ..registerAdapter(HiveBookAdapter());
     
     favoriteBooksBox = await Hive
       .openBox<Book>(Storage._favoriteBooks);
@@ -191,16 +185,16 @@ class Storage implements CacheProvider {
   Future<void> updateTags() async {
     final request = await HttpClient()
       .getUrl(Uri
-        .parse('https://github.com/LacticWhale/tags/raw/master/tags'),
+        .parse('https://github.com/LacticWhale/nhentai_app/raw/tags/tags.json.gz'),
       );
     final response = await request.close();
     final bytes = (await response.toList()).expand((e) => e).toList();
 
-    final data = gzip.decode(bytes);
+    final json = utf8.decode(gzip.decode(bytes));
     
     await selectedTagsBox.clear();
 
-    selectedTagsBox.addAll(binary.deserialize<List<Tag>>(data).map(TagWithState.unnamed));
+    selectedTagsBox.addAll(NHentaiMapper.fromJson<List<Tag>>(json).map(TagWithState.none));
   }
 
   @override

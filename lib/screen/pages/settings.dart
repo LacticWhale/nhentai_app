@@ -36,27 +36,21 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
 
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-    if(kDebugMode)
-      print(state);
-    if(state == AppLifecycleState.resumed) {
-      if(_isSupported) 
-        setState(() { });
-    }
+    if(_isSupported && state == AppLifecycleState.resumed)
+      setState(() { });
     
     super.didChangeAppLifecycleState(state);
   }
 
   Future<bool> getIsSupported() async {
-    var result = false;
-    
     try {
-      result = await DomainVerificationManager.isSupported;
+      return _isSupported = await DomainVerificationManager.isSupported;
     } on PlatformException {
       if(kDebugMode)
         print('DomainVerificationManager unsupported platform.');
     }
-    
-    return _isSupported = result; 
+
+    return _isSupported;
   }
 
   Future<void> getDomainStateSelected() async {
@@ -88,9 +82,9 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
     child: SafeArea(
       child: SettingsScreen(
         children: [
-          // SettingsGroup(
-          //   title: 'History',
-          //   children: [
+          SettingsGroup(
+            title: 'History',
+            children: [
               SwitchSettingsTile(
                 title: 'Record view book history', 
                 enabledLabel: 'You can find viewed books in history page.',
@@ -108,65 +102,69 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                   ),
                 ],
               ),
-          //   ],
-          // ),
-          FutureBuilder<void>(
-            // ignore: discarded_futures
-            future: (() async {
-              if(await getIsSupported())
-                await getDomainStateSelected();
-            })(),
-            builder: (context, snapshot) {
-              print(snapshot);
-              if(snapshot.connectionState != ConnectionState.done)
-                return const SizedBox.shrink();
-              
-              if(!_isSupported)
-                return const SizedBox.shrink();
+            ],
+          ),
+          SettingsGroup(
+            title: 'Global',
+            children: [
+              FutureBuilder<void>(
+                // ignore: discarded_futures
+                future: (() async {
+                  if(await getIsSupported())
+                    await getDomainStateSelected();
+                })(),
+                builder: (context, snapshot) {
+                  if(snapshot.connectionState != ConnectionState.done)
+                    return const SizedBox.shrink();
+                  
+                  if(!_isSupported)
+                    return const SizedBox.shrink();
 
-              return ListTile(
-                leading: _domainStateSelected.isNotEmpty 
-                  ? const Icon(Icons.link) 
-                  : const Icon(Icons.link_off),
-                title: Text(
-                  'App links',
-                  style: Theme.of(context).textTheme.headline6?.copyWith(fontSize: 16.0),
-                ),
-                subtitle: Text(
-                  _domainStateSelected.isNotEmpty 
-                    ? 'nhentai.net urls will be opened in app' 
-                    : 'nhentai.net urls will be opened in browser',
-                  style: Theme.of(context).textTheme.subtitle2
-                    ?.copyWith(fontSize: 13.0, fontWeight: FontWeight.normal),  
-                ),
-                onTap: () async => DomainVerificationManager.domainRequest(),
-                trailing: Switch.adaptive(
-                  value: _domainStateSelected.isNotEmpty,
-                  onChanged: (_) async => DomainVerificationManager.domainRequest(),
-                  activeColor: Theme.of(context).colorScheme.secondary,
-                ),
-                dense: true,
-              );
-            },
-          ),
-          SimpleSettingsTile(
-            title: 'Update tags',
-            leading: const Icon(Icons.update),
-            subtitle: 'Click to update list of tags.',
-            onTap: () async {
-              await storage.updateTags();
-            },
-          ),
-          SwitchSettingsTile(
-            title: 'Blur', 
-            settingKey: Preferences.kBlurImages,
-            leading: Icon(preferences.blurImages ? Icons.blur_on : Icons.blur_off),
-            enabledLabel: 'Images on screen are blurred.',
-            disabledLabel: 'Images shown as is.',
-            onChange: (value) {
-              if(kDebugMode)
-                print('${Preferences.kBlurImages}: $value');
-            },
+                  return ListTile(
+                    leading: _domainStateSelected.isNotEmpty 
+                      ? const Icon(Icons.link) 
+                      : const Icon(Icons.link_off),
+                    title: Text(
+                      'App links',
+                      style: Theme.of(context).textTheme.headline6?.copyWith(fontSize: 16.0),
+                    ),
+                    subtitle: Text(
+                      _domainStateSelected.isNotEmpty 
+                        ? 'nhentai.net urls will be opened in app' 
+                        : 'nhentai.net urls will be opened in browser',
+                      style: Theme.of(context).textTheme.subtitle2
+                        ?.copyWith(fontSize: 13.0, fontWeight: FontWeight.normal),  
+                    ),
+                    onTap: () async => DomainVerificationManager.domainRequest(),
+                    trailing: Switch.adaptive(
+                      value: _domainStateSelected.isNotEmpty,
+                      onChanged: (_) async => DomainVerificationManager.domainRequest(),
+                      activeColor: Theme.of(context).colorScheme.secondary,
+                    ),
+                    dense: true,
+                  );
+                },
+              ),
+              SimpleSettingsTile(
+                title: 'Update tags',
+                leading: const Icon(Icons.update),
+                subtitle: 'Click to update list of tags.',
+                onTap: () async {
+                  await storage.updateTags();
+                },
+              ),
+              SwitchSettingsTile(
+                title: 'Blur', 
+                settingKey: Preferences.kBlurImages,
+                leading: Icon(preferences.blurImages ? Icons.blur_on : Icons.blur_off),
+                enabledLabel: 'Images on screen are blurred.',
+                disabledLabel: 'Images shown as is.',
+                onChange: (value) {
+                  if(kDebugMode)
+                    print('${Preferences.kBlurImages}: $value');
+                },
+              ),
+            ],
           ),
         ],
       ),

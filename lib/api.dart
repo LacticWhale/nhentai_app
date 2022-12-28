@@ -7,23 +7,6 @@ import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 
 import 'main.dart';
 
-class ApiWithCache extends API {
-  ApiWithCache({
-    super.client,
-    super.hosts,
-    super.maxRetries,
-  });
-
-  final _cache = <Uri, dynamic>{};
-
-  @override
-  Future<dynamic> getJson(Uri url) {
-    if(_cache.containsKey(url))
-      return Future.value(_cache[url]!);
-    return super.getJson(url);
-  }
-}
-
 class HttpClientWithCookies with HttpClientMixin implements HttpClient {
   HttpClientWithCookies(this.httpClient);
 
@@ -73,6 +56,4 @@ final httpClient = HttpClientWithCookies(HttpClient()
 ,
 );
 
-final api = ApiWithCache(
-  client: httpClient,
-);
+final api = API(client: httpClient);

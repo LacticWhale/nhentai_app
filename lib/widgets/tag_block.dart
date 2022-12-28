@@ -25,7 +25,7 @@ class TagWithState extends Tag {
     url: tag.url,
   );
 
-  TagWithState.unnamed(Tag tag, [this.state = TagState.none]) : super(
+  TagWithState.none(Tag tag, [this.state = TagState.none]) : super(
     id: tag.id,
     count: tag.count,
     type: tag.type,

@@ -8,13 +8,12 @@ environment:
   sdk: ">=2.17.6 <3.0.0"
 
 dependencies:
-  binary:
-    git: https://github.com/LacticWhale/binary
   blur: ^3.1.0
   cached_network_image: ^3.2.2
   collection: ^1.16.0
   core_mixins: ^1.0.2
   cupertino_icons: ^1.0.2
+  dart_mappable: ^1.2.0
   domain_verification_manager: ^1.0.0
   dynamic_layouts:
     git:
@@ -24,14 +23,13 @@ dependencies:
     sdk: flutter
   flutter_cache_manager: ^3.3.0
   flutter_settings_screens: ^0.3.3-null-safety+2
-  hive: ^2.2.3
   hive_flutter: ^1.1.0
   http: ^0.13.5
   intl: ^0.17.0
   nhentai:
     git:
       url: https://github.com/LacticWhale/nhentai_dart.git
-      ref: master
+      ref: dev/dart_mappable+tests
   ordered_set: ^5.0.0
   path: ^1.8.1
   path_provider: ^2.0.11
@@ -43,7 +41,6 @@ dependencies:
   webview_flutter: ^3.0.4
 
 dev_dependencies:
-  hive_generator: ^2.0.0
   zekfad_lints: ^1.1.0
 
 flutter:

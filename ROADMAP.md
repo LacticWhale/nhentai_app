@@ -1,13 +1,15 @@
 # Roadmap 
 - Internal:
     - [ ] Rework storage.
-        - Remove `hive`, `flutter_hive`, `binary` dependencies.
-        - Store data in json format.
+        - [x] Remove `binary` dependencies.
     - [ ] Global tag list schedule generation.
     - [ ] App autoupdate.
     - [ ] Rework error handling on home page.
         - Require to fix [`nhentai`](https://github.com/Zekfad/nhentai_dart) error handling.
-- UX:
+- UX/UI:
+    - Page viewer:
+        - [ ] Download page.
+        - [ ] Crop page to clipboard.
     - Search:
         - [ ] Support for all official query features.
         - [ ] Save current query and tags.
