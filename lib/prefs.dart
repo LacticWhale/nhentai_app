@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nhentai/data_model.dart';
@@ -193,8 +194,20 @@ class Storage implements CacheProvider {
     final json = utf8.decode(gzip.decode(bytes));
     
     await selectedTagsBox.clear();
-
-    selectedTagsBox.addAll(NHentaiMapper.fromJson<List<Tag>>(json).map(TagWithState.none));
+    
+    final iterable = jsonDecode(json);
+    if(iterable is Iterable<dynamic>) {
+      selectedTagsBox.addAll(
+        iterable
+          .map((e) => e is Map<String, dynamic> ? Tag.fromMap(e) : null)
+          .whereNotNull()
+          .map(TagWithState.none),
+        );
+    } else if(kDebugMode)
+      print('Error while parsing initial tags. '
+        'Unexpected type of iterable: ${iterable.runtimeType}');
+      
+    // selectedTagsBox.addAll(NHentaiMapper.fromJson<List<Tag>>(json).map(TagWithState.none));
   }
 
   @override

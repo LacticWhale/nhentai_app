@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:domain_verification_manager/domain_verification_manager.dart';
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 
+import '../../api.dart';
 import '../../main.dart';
 import '../../prefs.dart';
 
@@ -164,6 +166,24 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                     print('${Preferences.kBlurImages}: $value');
                 },
               ),
+            ],
+          ),
+          SettingsGroup(
+            title: 'Networking', 
+            children: [
+              if(Platform.isWindows)
+                TextInputSettingsTile(
+                  title: 'user agent', 
+                  settingKey: 'none2',
+                  initialValue: MyApp.userAgent,
+                ),
+              if(Platform.isWindows)
+                TextInputSettingsTile(
+                  title: 'cf_clearance',
+                  settingKey: 'none',
+                  initialValue: httpClient.cachedCookie?.value ?? '',
+                  onChange: (line) => httpClient.cachedCookie?.value = line,
+                ),
             ],
           ),
         ],

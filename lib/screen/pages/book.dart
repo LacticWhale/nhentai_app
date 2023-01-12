@@ -407,7 +407,7 @@ class _BookPageState extends State<BookPage> {
               margin: const EdgeInsets.all(16.0),
               child: Text(comments.elementAt(index).body),
             ),
-          ]
+          ],
         ),
       ),
       childCount: comments.length,

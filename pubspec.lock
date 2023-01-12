@@ -86,12 +86,12 @@ packages:
     source: hosted
     version: "1.0.5"
   dart_mappable:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: dart_mappable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.0"
+    version: "2.0.0"
   domain_verification_manager:
     dependency: "direct main"
     description:
@@ -242,7 +242,7 @@ packages:
     description:
       path: "."
       ref: "dev/dart_mappable+tests"
-      resolved-ref: "472c5be12789bb7e26ba567be3abc389a193edfd"
+      resolved-ref: f39f0a9f42fd51290ed0b81f094a1d8d70399e49
       url: "https://github.com/LacticWhale/nhentai_dart.git"
     source: git
     version: "1.0.0-dev.10"
@@ -468,20 +468,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.0"
-  sqlite3:
-    dependency: "direct main"
-    description:
-      name: sqlite3
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.9.1"
-  sqlite3_flutter_libs:
-    dependency: "direct main"
-    description:
-      name: sqlite3_flutter_libs
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.12"
   string_scanner:
     dependency: transitive
     description:
@@ -509,7 +495,7 @@ packages:
       name: type_plus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.3"
+    version: "1.0.0"
   typed_data:
     dependency: transitive
     description:

@@ -196,10 +196,14 @@ class _NewHomePageState extends State<HomePage> {
           _pages = search.pages;
 
           return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 250,
               childAspectRatio: 9/13,
             ),
+            // gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            //   crossAxisCount: 5,
+            //   childAspectRatio: 9/13,
+            // ),
             itemBuilder: (context, index) => createGalleryCardWithCallback(updateIfNeeded)(
               context, 
               search.books.elementAt(index),

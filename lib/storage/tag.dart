@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:nhentai/data_model.dart';
 
 class HiveTagAdapter extends TypeAdapter<Tag> {

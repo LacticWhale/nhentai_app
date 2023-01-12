@@ -15,9 +15,11 @@ class HttpClientWithCookies with HttpClientMixin implements HttpClient {
 
   final cookieManager = WebviewCookieManager();
 
-  Cookie? cachedCookie;
+  Cookie? cachedCookie = Cookie('cf_clearance', 'fZZImzUICLbohYRO2MXwNIwC5EqUeAVnK98HHCIlV4A-1672398359-0-150');
 
   Future<Cookie?> get cfClearance async {
+    if(cachedCookie != null)
+      return cachedCookie;
     final cookies = await cookieManager.getCookies('https://nhentai.net/');
     if(cookies.isEmpty) 
       return null;

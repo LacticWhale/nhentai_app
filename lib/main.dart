@@ -21,6 +21,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.init(cacheProvider: storage);
 
+  print(MyApp.userAgent);
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -79,7 +81,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> initUniLinks() async {
     try {
       _initialPath = Uri.tryParse(await getInitialLink() ?? '/')?.path ?? '/';
-    } on PlatformException {
+    } catch (e) {
       _initialPath = '/';
     }
 

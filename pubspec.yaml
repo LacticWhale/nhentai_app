@@ -13,7 +13,7 @@ dependencies:
   collection: ^1.16.0
   core_mixins: ^1.0.2
   cupertino_icons: ^1.0.2
-  dart_mappable: ^1.2.0
+  # dart_mappable: ^1.2.0
   domain_verification_manager: ^1.0.0
   dynamic_layouts:
     git:
@@ -27,6 +27,7 @@ dependencies:
   http: ^0.13.5
   intl: ^0.17.0
   nhentai:
+    # path: C:/Repositories/@Zekfad/nhentai_dart
     git:
       url: https://github.com/LacticWhale/nhentai_dart.git
       ref: dev/dart_mappable+tests

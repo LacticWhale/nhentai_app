@@ -40,6 +40,8 @@ class _PageViewerState extends State<PageViewer> {
   late int _page;
   late int _pages;
 
+  bool canScroll = true;
+
   @override
   void initState() {
     _page = widget.initPageIndex;
@@ -73,6 +75,7 @@ class _PageViewerState extends State<PageViewer> {
 
   Future<void> prevPage() async {
     if(_page > 1) 
+      _page++;
       _pageController.previousPage(
         duration: const Duration(milliseconds: 200), 
         curve: Curves.decelerate,
@@ -83,9 +86,39 @@ class _PageViewerState extends State<PageViewer> {
   Widget build(BuildContext context) => Material(
     child: SafeArea(
       child: Scaffold(
+        appBar: AppBar(
+          actions: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'copy': 
+                    
+                    break;
+                  }
+                }, 
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'save',
+                    child: Text('Save to gallery'),
+                  ),
+                  const PopupMenuItem(
+                    value: 'copy',
+                    child: Text('Copy to clipboard'),
+                  )
+                ],
+                icon: const Icon(Icons.more_vert),
+              ),
+            )
+          ],
+        ),
         body: PreloadPageView.builder(
           controller: _pageController,
           onPageChanged: (page) => _appNavBarController.changeCurrentPage(page + 1),
+          physics: canScroll 
+            ? const ScrollPhysics() 
+            : const NeverScrollableScrollPhysics(),
           itemCount: _pages,
           preloadPagesCount: 3,
           itemBuilder: buildPage,
@@ -131,6 +164,12 @@ class _PageViewerState extends State<PageViewer> {
           nextPage();
       },
       child: InteractiveViewer(
+        onInteractionEnd: (details) {
+          if(mounted)
+            setState(() {
+              canScroll = _transformationController.value.isIdentity();
+            });
+        },
         transformationController: _transformationController,
         child: CachedNetworkImage(
             imageUrl: widget.book.pages.elementAt(page).getUrl(api: api).toString(),
@@ -145,4 +184,10 @@ class _PageViewerState extends State<PageViewer> {
       ),
     ),
   );
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<bool>('canScroll', canScroll));
+  }
 }
