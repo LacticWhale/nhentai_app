@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:nhentai/data_model.dart';
 import 'package:nhentai/data_model_prefixed.dart';
 import 'package:path/path.dart';
@@ -345,6 +346,23 @@ class _BookPageState extends State<BookPage> {
       Padding(
         padding: const EdgeInsets.only(left: 8.0, top: 4.0, bottom: 4.0),
         child: Text.rich(TextSpan(
+          text: 'Uploaded: ',
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+          ),
+          children: [
+            TextSpan(
+              text: DateFormat.yMMMMd().add_jm().format(widget.book.uploaded),
+              style: const TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 8.0, top: 4.0, bottom: 4.0),
+        child: Text.rich(TextSpan(
           text: 'Pages: ',
           style: const TextStyle(
             fontWeight: FontWeight.w700,
@@ -372,32 +390,43 @@ class _BookPageState extends State<BookPage> {
               alignment: Alignment.topLeft,
               margin: const EdgeInsets.only(left: 8.0, top: 8.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  CachedNetworkImage(
-                    alignment: Alignment.center,
-                    imageUrl: join(api.hosts.image.getUri().toString(), 'avatars', comments.elementAt(index).author.avatarFilename),
-                    httpHeaders: MyApp.headers,
-                    progressIndicatorBuilder:
-                        (context, url, downloadProgress) => Center(
-                      child: CircularProgressIndicator(
-                          value: downloadProgress.progress,),
-                    ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
-                    imageBuilder: (context, imageProvider) => CircleAvatar(
-                      foregroundImage: imageProvider,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
-                    child: Text(comments.elementAt(index).author.username),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: join(
+                          api.hosts.image.getUri().toString(), 
+                          'avatars', 
+                          comments.elementAt(index).author.avatarFilename,
+                        ),
+                        httpHeaders: MyApp.headers,
+                        progressIndicatorBuilder:
+                            (context, url, downloadProgress) => Center(
+                          child: CircularProgressIndicator(
+                            value: downloadProgress.progress,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                        imageBuilder: (context, imageProvider) => CircleAvatar(
+                          foregroundImage: imageProvider,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Text(comments.elementAt(index).author.username),
+                      ),
+                    ],
                   ),
                   Container(
-                    alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 8.0),
-                    child: Text(DateTime.now().difference(comments.elementAt(index).date).toString()),
+                    child: Text(
+                      DateFormat.yMd().add_jm().format(comments.elementAt(index).date.toLocal()),
+                    ),
                   )
                 ],
               ),

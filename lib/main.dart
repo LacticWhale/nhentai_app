@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 import 'package:nhentai/data_model.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:uni_links/uni_links.dart';
 
 import 'api.dart';
@@ -17,11 +18,16 @@ import 'screen/webview/nhentai.net.dart';
 Storage storage = Storage();
 Preferences preferences = Preferences(storage: storage);
 
+late PackageInfo packageInfo;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Settings.init(cacheProvider: storage);
 
-  print(MyApp.userAgent);
+  packageInfo = await PackageInfo.fromPlatform();
+  
+  if(kDebugMode)
+    print(MyApp.userAgent);
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -56,7 +62,7 @@ void main() async {
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  static final String userAgent = 'nhentai_app/1.0.2 ${Platform.operatingSystem}';
+  static final String userAgent = '${packageInfo.packageName}/${packageInfo.version} ${Platform.operatingSystem}';
 
   static Map<String, String> get headers => {
       'set-cookies': (api.client as HttpClientWithCookies).cachedCookie.toString(),

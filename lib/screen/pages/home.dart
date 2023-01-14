@@ -243,8 +243,8 @@ class _NewHomePageState extends State<HomePage> {
     child: ListView(
       padding: EdgeInsets.zero,
       children: [
-        const DrawerHeader(
-          child: Text('nhentai_app'),
+        DrawerHeader(
+          child: Text(packageInfo.appName),
         ),
         ListTile(
           title: const Text('Favorites'),
@@ -300,20 +300,36 @@ class _NewHomePageState extends State<HomePage> {
     ),
   );
 
+  Future<void> search(String query) async {
+    if(kDebugMode)
+      print('Homepage search with query: $query');
+    final id = int.tryParse(query);
+    if(id != null)
+      Navigator.push(context, 
+        MaterialPageRoute<void>(
+          builder: (context) => LoadBook(id: id),
+        ),
+      );
+    else
+      Navigator.pushReplacement(context, 
+        MaterialPageRoute<void>(
+          builder: (context) => HomePage(
+            query: _searchBarController.text,
+            page: 1,
+          ),
+        ),
+      );
+  }
+
   AppBar get appBar => AppBar(
     title: TextField(
       controller: _searchBarController,
+      onSubmitted: search,
     ),
     actions: [
       IconButton(
         onPressed: () async {
-          Navigator.pushReplacement(context, 
-            MaterialPageRoute<void>(builder: (context) => HomePage(
-                query: _searchBarController.text,
-                page: 1,
-              ),
-            ),
-          );
+          search(_searchBarController.text);
         },
         icon: const Icon(Icons.search),
       ),
