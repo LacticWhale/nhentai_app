@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nhentai/data_model.dart';
-import 'package:nhentai/data_model_prefixed.dart';
 
 import 'main.dart';
 import 'storage/book.dart';
@@ -27,6 +26,7 @@ class Preferences {
   static const kRecordHistory = 'record_history';
   static const kResetHistoryOnBoot = 'reset_history_on_boot';
   static const kSearchSort = 'search_sort';
+  static const kCfClearanceValue = 'cf_clearance_value';
 
   int get pagesPerRow => storage.getInt(kPagesPerRow) ?? 2;
   Future<void> setPagesPerRow(int value) => 
@@ -141,10 +141,6 @@ class Storage implements CacheProvider {
   Future<void> init() async {
     await Hive.initFlutter();
 
-    await Hive.deleteBoxFromDisk(Storage._favoriteBooks);
-    await Hive.deleteBoxFromDisk(Storage._bookHistory);
-    await Hive.deleteBoxFromDisk(Storage._selectedTags);
-
     Hive
       ..registerAdapter(HiveTagAdapter())
       ..registerAdapter(HiveTagWithStateAdapter())
@@ -199,7 +195,7 @@ class Storage implements CacheProvider {
     if(iterable is Iterable<dynamic>) {
       selectedTagsBox.addAll(
         iterable
-          .map((e) => e is Map<String, dynamic> ? Tag.fromMap(e) : null)
+          .map((e) => e is Map<String, dynamic> ? Tag.parse(e) : null)
           .whereNotNull()
           .map(TagWithState.none),
         );

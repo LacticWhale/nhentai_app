@@ -38,8 +38,10 @@ class _NHentaiWebViewState extends State<NHentaiWebView> {
           _controller.complete(webViewController);
         },
         onPageFinished: (url) async {
-          if(await (api.client as HttpClientWithCookies).cfClearance != null) 
-            Navigator.pop(context);
+          final Cookie? cookie; 
+          if((cookie = await (api.client as HttpClientWithCookies).cfClearance) != null) 
+            Navigator.pop(context, cookie);
+            
           if (kDebugMode) {
             print('Page finished loading: $url');
           }

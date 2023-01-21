@@ -13,7 +13,9 @@ import 'api.dart';
 import 'prefs.dart';
 import 'screen/pages/book.dart';
 import 'screen/pages/home.dart';
+import 'screen/pages/settings.dart';
 import 'screen/webview/nhentai.net.dart';
+import 'widgets/update_cookies.dart';
 
 Storage storage = Storage();
 Preferences preferences = Preferences(storage: storage);
@@ -55,6 +57,9 @@ void main() async {
       ),
       themeMode: ThemeMode.dark,
       home: const MyApp(),
+      onGenerateRoute: (settings) {
+        // TODO: routing.
+      },
     ),
   );
 }
@@ -65,8 +70,8 @@ class MyApp extends StatefulWidget {
   static final String userAgent = '${packageInfo.packageName}/${packageInfo.version} ${Platform.operatingSystem}';
 
   static Map<String, String> get headers => {
-      'set-cookies': (api.client as HttpClientWithCookies).cachedCookie.toString(),
-      'User-Agent': MyApp.userAgent,
+      'set-cookies': storage.getString(Preferences.kCfClearanceValue) ?? '',
+      'User-Agent': SettingsPage.cachedAgent ?? MyApp.userAgent,
   };
 
   @override
@@ -75,6 +80,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String? _initialPath;
+  Book? _book;
+  Object? _error;
 
   @override
   void initState() {
@@ -94,33 +101,63 @@ class _MyAppState extends State<MyApp> {
     setState(() { });
   }
 
+  Future<void> loadPage({required int id}) async {
+    try {
+      _book = await api.getBook(id);
+    } catch (e) {
+      _error = e;
+    }
+
+    setState(() { });
+  }
+
   @override
   Widget build(BuildContext context) {
-    if(_initialPath == null)
-      return const Material(
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    else if(_initialPath!.startsWith('/g/')) {
-      final id = int.tryParse(_initialPath!.substring(_initialPath!.indexOf('/g/') + 3));
-      if(id == null)
-        return Material(
-          child: Center(
-            child: Text(_initialPath ?? ''),
+    if(_initialPath != null)
+      if(_initialPath!.startsWith('/g/')) {
+        if(_error != null) {
+          if(_error is FormatException) {
+            return Material(
+              child: SafeArea(
+                child: Scaffold(
+                  appBar: AppBar(),
+                  body: UpdateCookies(
+                    error: _error!,
+                    cb: () => setState(() {
+                      _error = null;
+                    }),
+                  ),
+                ),
+              ),
+            );
+          }
+          if(kDebugMode)
+            return Material(
+              child: Center(
+                child: Text(_error.toString()), 
+              ),
+            );
+          return const HomePage();
+        } else if(_book != null) 
+          return BookPage(book: _book!);
+        // ignore: discarded_futures
+        loadPage(
+          id: int.parse(
+            RegExp(r'\/g\/(\d+)')
+              .firstMatch(_initialPath!)
+              ?.group(1) ?? '-1',    
           ),
-        ); 
-      return LoadBook(
-        id: id,
-      );
-    } else if(_initialPath == '/') {
-      return const HomePage();
-    } else 
-      return Material(
-        child: Center(
-          child: Text(_initialPath ?? ''),
-        ),
-      ); 
+        );
+      } else if(_initialPath == '/') {
+        return const HomePage();
+      } else 
+        return const HomePage();
+  
+    return const Material(
+      child: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
   }
 }
 
@@ -140,7 +177,6 @@ class LoadBook extends StatefulWidget {
     super.debugFillProperties(properties);
     properties.add(IntProperty('id', id));
   }
-
 }
 
 class LoadBookState extends State<LoadBook> {
@@ -194,5 +230,4 @@ class LoadBookState extends State<LoadBook> {
   );
 
   Future<Book?> getBook(int id) async => id == -1 ? null : api.getBook(id);
-
 }

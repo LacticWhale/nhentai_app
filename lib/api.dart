@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:core_mixins/http/http_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nhentai/nhentai.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 
 import 'main.dart';
+import 'prefs.dart';
 
 class HttpClientWithCookies with HttpClientMixin implements HttpClient {
   HttpClientWithCookies(this.httpClient);
@@ -15,26 +17,37 @@ class HttpClientWithCookies with HttpClientMixin implements HttpClient {
 
   final cookieManager = WebviewCookieManager();
 
-  Cookie? cachedCookie = Cookie('cf_clearance', 'fZZImzUICLbohYRO2MXwNIwC5EqUeAVnK98HHCIlV4A-1672398359-0-150');
+  Future<Cookie?> get _platformSpecificCookie async {
+    if(Platform.isAndroid || Platform.isIOS) {
+      final cookies = await cookieManager.getCookies('https://nhentai.net/');
+      if(cookies.isEmpty) 
+        return null;
+      
+      return cookies.firstWhereOrNull((element) => element.name == 'cf_clearance');
+    } else {
+      throw UnimplementedError();
+    }
+  }
 
   Future<Cookie?> get cfClearance async {
-    if(cachedCookie != null)
-      return cachedCookie;
-    final cookies = await cookieManager.getCookies('https://nhentai.net/');
-    if(cookies.isEmpty) 
-      return null;
+    final cookieValue = storage.getString(Preferences.kCfClearanceValue);
+    if (cookieValue != null)
+      return Cookie('cf_clearance', cookieValue);
 
-    final cfClearance = cookies.where((element) => element.name == 'cf_clearance');
-    if(cfClearance.isEmpty) 
-      return null;
-
-    return cachedCookie = cfClearance.first;
+    final cookie = await _platformSpecificCookie;
+    await storage.setString(Preferences.kCfClearanceValue, cookie?.value);
+    return cookie;
   }
 
-  Future<void> clearCookies() async {
-    cachedCookie = null;
-    return cookieManager.clearCookies();
-  }
+  Future<void> clearCookies() => Future.wait([
+    storage.remove(Preferences.kCfClearanceValue),
+    if(Platform.isAndroid || Platform.isIOS)
+      cookieManager.clearCookies(),
+  ]); 
+  // async {
+  //   await storage.remove(Preferences.kCfClearanceValue);
+  //   return cookieManager.clearCookies();
+  // }
 
   @override
   Future<HttpClientRequest> getUrl(Uri url) async {

@@ -91,7 +91,7 @@ packages:
       name: dart_mappable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.1"
   domain_verification_manager:
     dependency: "direct main"
     description:
@@ -242,7 +242,7 @@ packages:
     description:
       path: "."
       ref: "dev/dart_mappable+tests"
-      resolved-ref: f39f0a9f42fd51290ed0b81f094a1d8d70399e49
+      resolved-ref: "4acac4b7dd47ee93200fc7ebc3ccde73c43733d0"
       url: "https://github.com/LacticWhale/nhentai_dart.git"
     source: git
     version: "1.0.0-dev.10"

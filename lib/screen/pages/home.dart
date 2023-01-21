@@ -13,6 +13,7 @@ import '../../main.dart';
 import '../../widgets/my_navigation_bar.dart';
 import '../../widgets/selector.dart';
 import '../../widgets/tag_block.dart';
+import '../../widgets/update_cookies.dart';
 import '../webview/nhentai.net.dart';
 import 'book.dart';
 import 'favorites.dart';
@@ -106,7 +107,7 @@ class _NewHomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  Widget buildInitial(BuildContext context) => FutureBuilder<Search?>(
+  Widget buildInitial(BuildContext context) => FutureBuilder<Search>(
     // ignore: discarded_futures
     future: api.searchSinglePage(_query,
       sort: _searchSort,
@@ -122,23 +123,34 @@ class _NewHomePageState extends State<HomePage> {
             child: Scaffold(
               appBar: AppBar(),
               drawer: widget.drawer ? drawer : null,
-              body: Center(
-                child: Card(
-                  child: TextButton(
-                    child: const Text('Update cookies.'),
-                    onPressed: () async {
-                      (api.client as HttpClientWithCookies)
-                        .clearCookies()
-                        .then((value) => Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (context) => const NHentaiWebView(),
-                          ),
-                        ).then((value) => setState(() { })),);
-                    },
-                  ),
-                ),
+              body: UpdateCookies(
+                error: snapshot.error!, 
+                cb: () => setState(() {}),
               ),
+              // Center(
+              //   child: Column(
+              //     mainAxisSize: MainAxisSize.min,
+              //     children: [
+              //       Card(
+              //         child: TextButton(
+              //           child: const Text('Update cookies.'),
+              //           onPressed: () async {
+              //             (api.client as HttpClientWithCookies)
+              //               .clearCookies()
+              //               .then((value) => Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute<void>(
+              //                   builder: (context) => const NHentaiWebView(),
+              //                 ),
+              //               ).then((value) => setState(() { })),);
+              //           },
+              //         ),
+              //       ),
+              //       if(kDebugMode)
+              //         Text(snapshot.error.toString()),
+              //     ],
+              //   ),
+              // ),
             ),
           ),
         );

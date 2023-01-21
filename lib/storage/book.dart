@@ -5,7 +5,7 @@ class HiveBookAdapter extends TypeAdapter<Book> {
   int get typeId => 1;
 
   @override
-  Book read(BinaryReader reader) => Book.fromJson(reader.readString());
+  Book read(BinaryReader reader) => Book.parseJson(reader.readString());
 
   @override
   void write(BinaryWriter writer, Book obj) {

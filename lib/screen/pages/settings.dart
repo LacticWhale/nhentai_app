@@ -14,6 +14,8 @@ import '../../prefs.dart';
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
+  static String? cachedAgent;
+
   @override
   State<StatefulWidget> createState() => _SettingsPageState();
 }
@@ -173,6 +175,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
             children: [
               if(Platform.isWindows)
                 TextInputSettingsTile(
+                  onChange: (p0) => SettingsPage.cachedAgent = p0,
                   title: 'user agent', 
                   settingKey: 'none2',
                   initialValue: MyApp.userAgent,
@@ -180,9 +183,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
               if(Platform.isWindows)
                 TextInputSettingsTile(
                   title: 'cf_clearance',
-                  settingKey: 'none',
-                  initialValue: httpClient.cachedCookie?.value ?? '',
-                  onChange: (line) => httpClient.cachedCookie?.value = line,
+                  settingKey: 'cf_clearance_value',
                 ),
             ],
           ),
