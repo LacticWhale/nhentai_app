@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
 import '../../api.dart';
+import '../../app.dart';
 import '../../functions/image_builder.dart';
 import '../../main.dart';
 import '../../widgets/my_navigation_bar.dart';

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 
-import '../../api.dart';
+import '../../app.dart';
 import '../../main.dart';
 import '../../prefs.dart';
 

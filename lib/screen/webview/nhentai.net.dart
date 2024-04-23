@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../api.dart';
+import '../../app.dart';
 import '../../main.dart';
-
 
 class NHentaiWebView extends StatefulWidget {
   const NHentaiWebView({super.key});
@@ -17,36 +17,45 @@ class NHentaiWebView extends StatefulWidget {
 }
 
 class _NHentaiWebViewState extends State<NHentaiWebView> {
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
+  final WebViewController _controller = WebViewController();
 
   @override
   void initState() {
     super.initState();
-    if (Platform.isAndroid) {
-      WebView.platform = SurfaceAndroidWebView();
-    }
+
+    scheduleMicrotask(() async {
+      _controller
+        ..setUserAgent(MyApp.userAgent)
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(const Color(0x00000000))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onProgress: (progress) {
+              // Update loading bar.
+            },
+            onPageFinished: (url) async {
+              final cookie = await cfManager.cfClearance;
+              if (cookie != null) {
+                if (mounted)
+                  Navigator.of(context).pop(cookie);
+              }
+
+              if (kDebugMode) {
+                print('Page finished loading: $url');
+              }
+            },
+          ),
+        )
+        ..loadRequest(Uri.parse('https://echo-http-requests.appspot.com/echo'))
+        // ..loadRequest(
+        //     Uri.parse('https://nhentai.net/api/galleries/search?query=*'))
+        ;
+    });
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      body: WebView(
-        initialUrl: 'https://nhentai.net/api/galleries/search?query=*',
-        userAgent: MyApp.userAgent,
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (webViewController) async {
-          _controller.complete(webViewController);
-        },
-        onPageFinished: (url) async {
-          final Cookie? cookie; 
-          if((cookie = await (api.client as HttpClientWithCookies).cfClearance) != null) 
-            Navigator.pop(context, cookie);
-            
-          if (kDebugMode) {
-            print('Page finished loading: $url');
-          }
-        },
-        gestureNavigationEnabled: true,
-      ),
-    );
+    appBar: AppBar(title: const Text('Flutter Simple Example')),
+    body: WebViewWidget(controller: _controller),
+  );
 }

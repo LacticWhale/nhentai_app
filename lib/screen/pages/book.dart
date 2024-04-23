@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:nhentai/data_model.dart';
 import 'package:nhentai/data_model_prefixed.dart';
@@ -9,6 +10,7 @@ import 'package:path/path.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../api.dart';
+import '../../app.dart';
 import '../../functions/image_builder.dart';
 import '../../main.dart';
 import '../../widgets/tag_block.dart';
@@ -168,7 +170,7 @@ class _BookPageState extends State<BookPage> {
             _wrapEnglish = !_wrapEnglish;
           }),
           onLongPress: () async {
-            Clipboard.setData(ClipboardData(text: widget.book.title.english)).then((_){
+            Clipboard.setData(ClipboardData(text: widget.book.title.english!)).then((_){
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(const SnackBar(
@@ -197,7 +199,7 @@ class _BookPageState extends State<BookPage> {
             _wrapJapanese = !_wrapJapanese;
           }),
           onLongPress: () async {
-            Clipboard.setData(ClipboardData(text: widget.book.title.japanese)).then((_){
+            Clipboard.setData(ClipboardData(text: widget.book.title.japanese!)).then((_){
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(const SnackBar(
@@ -322,15 +324,12 @@ class _BookPageState extends State<BookPage> {
                   });
                 },
                 onTap: () async {
-                  Navigator.push(context, 
-                    MaterialPageRoute<void>(
-                      builder: (context) => HomePage(
-                        drawer: false,
-                        includedTags: [
-                          TagWithState(tag: tag, state: TagState.included),
-                        ],
-                      ),
-                    ),
+                  GoRouter.of(context).push('/search?drawer=false', 
+                    extra: {
+                      'include': [
+                        TagWithState(tag: tag, state: TagState.included),
+                      ],
+                    },
                   );
                 },
                 child: TagBlock(
@@ -445,7 +444,14 @@ class _BookPageState extends State<BookPage> {
 
   Widget createPageCard(BuildContext context, int index) => GestureDetector(
     onTap: () async {
-      Navigator.push(context, MaterialPageRoute<void>(builder:(context) => PageViewer(book: widget.book, initPageIndex: index),));
+      Navigator.push(context, 
+        MaterialPageRoute<void>(
+          builder: (context) => PageViewer(
+            book: widget.book, 
+            initPageIndex: index,
+          ),
+        ),
+      );
     },
     child: Card(
       clipBehavior: Clip.antiAlias,

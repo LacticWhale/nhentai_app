@@ -1,22 +1,18 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:core_mixins/http/http_client.dart';
-import 'package:flutter/foundation.dart';
+import 'package:http/http.dart';
 import 'package:nhentai/nhentai.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 
+import 'app.dart';
 import 'main.dart';
 import 'prefs.dart';
 
-class HttpClientWithCookies with HttpClientMixin implements HttpClient {
-  HttpClientWithCookies(this.httpClient);
-
-  @override
-  final HttpClient httpClient;
-
+class CloudflareCookieManager {
   final cookieManager = WebviewCookieManager();
-
+  
   Future<Cookie?> get _platformSpecificCookie async {
     if(Platform.isAndroid || Platform.isIOS) {
       final cookies = await cookieManager.getCookies('https://nhentai.net/');
@@ -44,31 +40,20 @@ class HttpClientWithCookies with HttpClientMixin implements HttpClient {
     if(Platform.isAndroid || Platform.isIOS)
       cookieManager.clearCookies(),
   ]); 
-  // async {
-  //   await storage.remove(Preferences.kCfClearanceValue);
-  //   return cookieManager.clearCookies();
-  // }
-
-  @override
-  Future<HttpClientRequest> getUrl(Uri url) async {
-    final request = await super.openUrl('GET', url);
-    if(url.host.contains('nhentai.net')) {
-      final cf = await cfClearance; 
-      if (kDebugMode) 
-        print('Request with cookies: $url');
-      if (cf != null)
-        request.cookies.add(cf);
-    }
-
-    return request;
-  }
 }
 
-final httpClient = HttpClientWithCookies(HttpClient()
-  ..userAgent = MyApp.userAgent
-  ..connectionTimeout = const Duration(seconds: 15)
-  ..idleTimeout = const Duration(seconds: 15)
-,
+final cfManager = CloudflareCookieManager();  
+
+final api = API(
+  userAgent: MyApp.userAgent,
+  beforeRequest: beforeRequest,
 );
 
-final api = API(client: httpClient);
+FutureOr<void> beforeRequest(Request request) async {
+  final req = Request('GET', Uri.parse('https://echo-http-requests.appspot.com/echo'));
+  req.headers['Cookie'] = (await cfManager.cfClearance).toString();
+
+  final response = await Response.fromStream(await api.client.send(req));
+  throw ApiClientException('a', originalException: Exception());
+  print(response.body);
+}

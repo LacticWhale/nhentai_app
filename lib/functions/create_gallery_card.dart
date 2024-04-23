@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nhentai/data_model.dart';
 
 import '../api.dart';
+import '../app.dart';
 import '../main.dart';
-import '../screen/pages/book.dart';
 import 'image_builder.dart';
 
 Widget createGalleryCard(BuildContext context, Book book) => createGalleryCardWithCallback(null)(context, book);
@@ -15,15 +16,11 @@ Widget Function(BuildContext context, Book book) createGalleryCardWithCallback(F
   onTap: () async {
     if(preferences.recordHistory)
       storage.booksHistoryBox.add(book);
-    Navigator.of(context).push(
-      MaterialPageRoute<BookPage>(
-        builder: (context) =>
-            BookPage(book: book),
-      ),
-    ).then((value) { 
-      if(cb != null)
-        cb();
-    });
+
+    GoRouter.of(context).push('/book/${book.id}', extra: book)
+      .then((value) {
+        cb?.call();
+      });
   },
   child: Card(
     clipBehavior: Clip.antiAlias,

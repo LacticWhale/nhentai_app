@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nhentai/data_model.dart';
 import 'package:nhentai/nhentai.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
 import '../../api.dart';
+import '../../extensions/string_add_query.dart';
 import '../../functions/create_gallery_card.dart';
 import '../../main.dart';
 import '../../widgets/my_navigation_bar.dart';
@@ -114,10 +116,7 @@ class _NewHomePageState extends State<HomePage> {
       page: widget.page,
     ),
     builder: (context, snapshot) {
-      if(snapshot.connectionState != ConnectionState.done)
-        return loading;
-
-      if(snapshot.error != null || snapshot.data == null) 
+      if (snapshot.hasError)
         return Material(
           child: SafeArea(
             child: Scaffold(
@@ -127,33 +126,12 @@ class _NewHomePageState extends State<HomePage> {
                 error: snapshot.error!, 
                 cb: () => setState(() {}),
               ),
-              // Center(
-              //   child: Column(
-              //     mainAxisSize: MainAxisSize.min,
-              //     children: [
-              //       Card(
-              //         child: TextButton(
-              //           child: const Text('Update cookies.'),
-              //           onPressed: () async {
-              //             (api.client as HttpClientWithCookies)
-              //               .clearCookies()
-              //               .then((value) => Navigator.push(
-              //                 context,
-              //                 MaterialPageRoute<void>(
-              //                   builder: (context) => const NHentaiWebView(),
-              //                 ),
-              //               ).then((value) => setState(() { })),);
-              //           },
-              //         ),
-              //       ),
-              //       if(kDebugMode)
-              //         Text(snapshot.error.toString()),
-              //     ],
-              //   ),
-              // ),
             ),
           ),
         );
+
+      if (!snapshot.hasData)
+        return loading;
 
       final search = snapshot.data!;
       _pages = search.pages;
@@ -184,8 +162,8 @@ class _NewHomePageState extends State<HomePage> {
             return loadingBody;
 
           if(snapshot.error != null || snapshot.data == null) {
-            if(snapshot.error is APIException) {
-              if((snapshot.error! as APIException).message == 'does not exist') {
+            if(snapshot.error is ApiException) {
+              if((snapshot.error! as ApiException).message == 'does not exist') {
                 return const Material(
                   child: Center(
                     child: Text('Page doesn\'t exist.'),
@@ -261,51 +239,29 @@ class _NewHomePageState extends State<HomePage> {
         ListTile(
           title: const Text('Favorites'),
           onTap: () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => const FavoritesPage(), 
-              ), 
-            );
+            GoRouter.of(context).push('/favorites');
           },
         ),
         ListTile(
           title: const Text('Select tags'),
           onTap: () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => const TagSelectorPage(), 
-              ), 
-            ).then((_) => updateIfNeeded());
+            GoRouter.of(context).push('/tags')
+              .then((_) => updateIfNeeded());
           },
         ),
         ListTile(
           title: const Text('History'),
           onTap: () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => const HistoryPage(), 
-              ), 
-            );
+            GoRouter.of(context).push('/history');
           },
         ),
         ListTile(
           title: const Text('Settings'),
           onTap: () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => const SettingsPage(),
-              ),
-            ).then((_) => Navigator.pushReplacement(context, 
-              MaterialPageRoute<void>(builder: (context) => HomePage(
-                query: widget.query,
-                page: _page,
-                pages: _pages,
-              ),),
-            ),);
+            GoRouter.of(context).push('/settings')
+              .then((_) => GoRouter.of(context)
+                .pushReplacement('/search?query=${widget.query}&page=$_page&pages=$_pages'),
+              );
           },
         ),
       ],
@@ -317,20 +273,9 @@ class _NewHomePageState extends State<HomePage> {
       print('Homepage search with query: $query');
     final id = int.tryParse(query);
     if(id != null)
-      Navigator.push(context, 
-        MaterialPageRoute<void>(
-          builder: (context) => LoadBook(id: id),
-        ),
-      );
+      GoRouter.of(context).push('/book/$id');
     else
-      Navigator.pushReplacement(context, 
-        MaterialPageRoute<void>(
-          builder: (context) => HomePage(
-            query: _searchBarController.text,
-            page: 1,
-          ),
-        ),
-      );
+      GoRouter.of(context).go('/search?query=${_searchBarController.text}&page=1');
   }
 
   AppBar get appBar => AppBar(
@@ -349,14 +294,14 @@ class _NewHomePageState extends State<HomePage> {
         icon: const Icon(Icons.sort),
         onSelected: (_selectedSearchSort) async {
           preferences.setSearchSort(_selectedSearchSort).then((value) => 
-            Navigator.pushReplacement(context, 
-              MaterialPageRoute<void>(builder: (context) => HomePage(
-                  query: widget.query,
-                  page: 1,
-                  includedTags: widget.includedTags,
-                  excludedTags: widget.excludedTags,
-                ),
-              ),
+            GoRouter.of(context).pushReplacement('/search'.addQuery({
+              'query': widget.query,
+              'page': 1,
+            }), 
+              extra: {
+                'include': widget.includedTags,
+                'exclude': widget.excludedTags,
+              },
             ),
           );
         },
@@ -422,12 +367,8 @@ class _NewHomePageState extends State<HomePage> {
   Future<void> openBook(Book book) async {
     if(kDebugMode)
       print('b');
-    Navigator.push(context,
-      MaterialPageRoute<void>(
-        builder: (context) =>
-          BookPage(book: book),
-      ),
-    ).then((_) async {
+    GoRouter.of(context).push('/book/${book.id}', extra: book)
+    .then((_) async {
       if (kDebugMode)
         print('a');
       updateIfNeeded();
@@ -451,11 +392,9 @@ class _NewHomePageState extends State<HomePage> {
         excludedTagsIds,);
 
     if(!equalsIncluded || !equalsExcluded) {
-      Navigator.pushReplacement(context, 
-        MaterialPageRoute<void>(builder: (context) => HomePage(
-          query: widget.query,
-        ),),
-      );
+      GoRouter.of(context).pushReplacement('/search'.addQuery({
+        'query': widget.query,
+      }),);
     }
   }
 

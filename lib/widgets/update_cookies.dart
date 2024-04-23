@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:nhentai/nhentai.dart';
 
 import '../api.dart';
 import '../screen/webview/nhentai.net.dart';
@@ -23,7 +24,7 @@ class UpdateCookies extends StatelessWidget {
           child: TextButton(
             child: const Text('Update cookies.'),
             onPressed: () async {
-              (api.client as HttpClientWithCookies)
+              cfManager
                 .clearCookies().then((value) {
                   Navigator.push(
                     context,
@@ -35,8 +36,7 @@ class UpdateCookies extends StatelessWidget {
             },
           ),
         ),
-        if(kDebugMode)
-          Text(error.toString()),
+        Text(error.toString()),
       ],
     ),
   );
