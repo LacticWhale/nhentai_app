@@ -54,7 +54,6 @@ final _router = GoRouter(
         );
       },
       redirect: (context, state) {
-        print(state.uri);
         if (state.uri.queryParameters.containsKey('next')) {
           final queryParameters = Map.of(state.uri.queryParameters)
             ..remove('next');
@@ -78,7 +77,8 @@ final _router = GoRouter(
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 // TODO: add logging
-                print(snapshot.error);
+                if (kDebugMode) 
+                  print(snapshot.error);
 
                 return ErrorWidget(snapshot.error!);
               }

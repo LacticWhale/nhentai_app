@@ -41,10 +41,8 @@ class UpdateCookies extends StatelessWidget {
             // GoRouter.of(context).replace('?next');
             GoRouter.of(context).go(GoRouterState.of(context).uri.replace(queryParameters: Map.of(GoRouterState.of(context).uri.queryParameters)..addAll({'next': null})).toString());
           },
-          child: Text('Try loading next page.'),
+          child: const Text('Try loading next page.'),
         ),
-        
-        (() { print(error); return null;})() ??
         Text(error.toString()),
       ],
     ),

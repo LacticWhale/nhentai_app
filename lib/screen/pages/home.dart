@@ -249,14 +249,12 @@ class _NewHomePageState extends State<HomePage> {
     return buildView(context);
   }
 
-  DateTime loadingStarted = DateTime.now(); 
-
   Widget get loadingBody => Center(
     child: Column(
       children: [
-        CircularProgressIndicator(),
+        const CircularProgressIndicator(),
         FutureBuilder(
-          future: Future<void>.delayed(Duration(seconds: 3)), 
+          future: Future<void>.delayed(const Duration(seconds: 3)), 
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done)
               return FilledButton(
@@ -268,7 +266,8 @@ class _NewHomePageState extends State<HomePage> {
               );
             
             return const SizedBox.shrink();
-          }),
+          },
+        ),
       ],
     ),
   ); 

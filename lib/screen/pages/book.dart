@@ -38,7 +38,7 @@ class _BookPageState extends State<BookPage> {
   bool _wrapEnglish = false;
   bool _wrapJapanese = false;
   
-  List<Comment>? _comments;
+  late List<Comment> _comments;
   
   bool _commentsLoaded = false;
 
@@ -98,8 +98,6 @@ class _BookPageState extends State<BookPage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // TODO: Appropriately size boxes to fit image
-                              // It's 22:52. My brain already shuted down to figure that out.
                               ConstrainedBox(
                                 constraints: BoxConstraints(
                                   minHeight: 
@@ -154,7 +152,7 @@ class _BookPageState extends State<BookPage> {
                   ]),
                 )
               else
-                buildCommentSection(context, _comments!),
+                buildCommentSection(context, _comments),
             ],
           ),
         ),

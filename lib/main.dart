@@ -25,7 +25,7 @@ void main() async {
     print(MyApp.userAgent);
   }
 
-  final AppState state = AppState();
+  final state = AppState();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

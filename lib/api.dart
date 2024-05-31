@@ -55,10 +55,4 @@ FutureOr<void> beforeRequest(Request request) async {
   final cookie = await cfManager.cfClearance;
   if (cookie != null)
     request.headers['Cookie'] = cookie.toString();
-
-  print('----------------------');
-  print(cookie);
-  print(request.headers['User-Agent']);
-  print(request.url);
-  print('----------------------');
 }

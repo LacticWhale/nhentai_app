@@ -181,7 +181,7 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                   initialValue: MyApp.userAgent,
                 ),
               if(Platform.isWindows)
-                TextInputSettingsTile(
+                const TextInputSettingsTile(
                   title: 'cf_clearance',
                   settingKey: 'cf_clearance_value',
                 ),
