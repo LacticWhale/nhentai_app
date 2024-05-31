@@ -2,12 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../api.dart';
 import '../../app.dart';
-import 'web_view_info.dart';
 
 class NHentaiWebView extends StatefulWidget {
   const NHentaiWebView({super.key});
@@ -34,11 +32,9 @@ class _NHentaiWebViewState extends State<NHentaiWebView> {
               // Update loading bar.
             },
             onPageFinished: (url) async {
-              context.read<WebViewBloc>().add(WebViewUpdatePath(newPath: url));
               final cookie = await cfManager.cfClearance;
               if (!context.mounted) 
                 return;
-              context.read<WebViewBloc>().add(WebViewUpdateCookie(newCookie: cookie.toString()));
               if (cookie != null) {
                 if (mounted)
                   Navigator.of(context).pop(cookie);

@@ -3,3 +3,4 @@ include: package:zekfad_lints/untyped/flutter.yaml
 linter:
   rules:
     unawaited_futures: false
+    cascade_invocations: false

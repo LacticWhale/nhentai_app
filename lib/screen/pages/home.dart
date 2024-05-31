@@ -7,14 +7,15 @@ import 'package:go_router/go_router.dart';
 import 'package:nhentai/nhentai.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
-import '../../api.dart';
-import '../../extensions/string_add_query.dart';
-import '../../functions/create_gallery_card.dart';
-import '../../main.dart';
-import '../../widgets/my_navigation_bar.dart';
-import '../../widgets/selector.dart';
-import '../../widgets/tag_block.dart';
-import '../../widgets/update_cookies.dart';
+import '/api.dart';
+import '/extensions/string_add_query.dart';
+import '/functions/create_gallery_card.dart';
+import '/main.dart';
+import '/widgets/exception_page.dart';
+import '/widgets/my_navigation_bar.dart';
+import '/widgets/selector.dart';
+import '/widgets/tag_block.dart';
+import '/widgets/update_cookies.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({
@@ -144,15 +145,14 @@ class _NewHomePageState extends State<HomePage> {
     ),
     builder: (context, snapshot) {
       if (snapshot.hasError)
-        return Material(
-          child: SafeArea(
-            child: Scaffold(
-              appBar: appBar,
-              drawer: widget.drawer ? drawer : null,
-              body: UpdateCookies(
-                error: snapshot.error!, 
-                cb: () => setState(() {}),
-              ),
+        return Scaffold(
+          appBar: appBar,
+          drawer: widget.drawer ? drawer : null,
+          body: ExceptionPage(
+            onRefresh: () async => setState(() {}),
+            child: UpdateCookies(
+              error: snapshot.error!, 
+              cb: () => setState(() {}),
             ),
           ),
         );
@@ -175,10 +175,35 @@ class _NewHomePageState extends State<HomePage> {
   Widget buildView(BuildContext context) => Scaffold(
     appBar: appBar,
     drawer: widget.drawer ? drawer : null,
-    bottomNavigationBar: bottomNavigationBar,
+    bottomNavigationBar: MyNavigationBar(
+      controller: _appNavBarController, 
+      onLeft: () async {
+        if(_page > 1)
+          _pageController.previousPage(
+            duration: const Duration(milliseconds: 200), 
+            curve: Curves.decelerate,
+          );
+      },
+      onText: () => unawaited(
+        showDialog(
+          context: context,
+          builder: (context) => StatefulBuilder(
+            builder: (context, setInnerState) => Selector(
+              pages: _pages!,
+              page: _page,
+              onJump: (page) => _pageController.jumpToPage(page),
+            ),
+          ),
+        ),
+      ),
+      onRight: () async {
+        if(_page < _pages!) 
+          _pageController.nextPage(duration: const Duration(milliseconds: 200), curve: Curves.decelerate);
+      },
+    ),
     body: PreloadPageView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      // onPageChanged: (value) => _appNavBarController.changeCurrentPage(_page = value + 1),
+      onPageChanged: (value) => _appNavBarController.changeCurrentPage(_page = value + 1),
       controller: _pageController,
       preloadPagesCount: 3,
       itemCount: _pages! - 1,
@@ -195,19 +220,22 @@ class _NewHomePageState extends State<HomePage> {
           if(snapshot.error != null || snapshot.data == null) {
             if(snapshot.error is ApiException) {
               if((snapshot.error! as ApiException).message == 'does not exist') {
-                return const Material(
-                  child: Center(
+                return ExceptionPage(
+                  onRefresh: () async => setState(() {}), 
+                  child: const Center(
                     child: Text('Page doesn\'t exist.'),
                   ),
                 );
               }
             }
+
             // Unknown error
             if(kDebugMode)
               print(snapshot.error);
             
-            return const Material(
-              child: Center(
+            return ExceptionPage(
+              onRefresh: () async => setState(() {}), 
+              child: const Center(
                 child: Text('Unknown error happened while loading this page.'),
               ),
             );
@@ -379,34 +407,6 @@ class _NewHomePageState extends State<HomePage> {
         ],
       ),
     ],
-  );
-
-  MyNavigationBar? _bottomNavigationBar;
-  MyNavigationBar get bottomNavigationBar => _bottomNavigationBar ??= MyNavigationBar(
-    controller: _appNavBarController, 
-    onLeft: () async {
-      if(_page > 1)
-        _pageController.previousPage(
-          duration: const Duration(milliseconds: 200), 
-          curve: Curves.decelerate,
-        );
-    },
-    onText: () => unawaited(
-      showDialog(
-        context: context,
-        builder: (context) => StatefulBuilder(
-          builder: (context, setInnerState) => Selector(
-            pages: _pages!,
-            page: _page,
-            onJump: (page) => _pageController.jumpToPage(page),
-          ),
-        ),
-      ),
-    ),
-    onRight: () async {
-      if(_page < _pages!) 
-        _pageController.nextPage(duration: const Duration(milliseconds: 200), curve: Curves.decelerate);
-    },
   );
 
   Future<void> openBook(Book book) async {

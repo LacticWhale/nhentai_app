@@ -13,6 +13,7 @@ dependencies:
   collection: ^1.16.0
   core_mixins: ^1.0.2
   cupertino_icons: ^1.0.2
+  dart_seq_http_client: ^0.0.1-pre.2
   domain_verification_manager: ^1.0.0
   dynamic_layouts:
     path: ../dynamic_layouts
