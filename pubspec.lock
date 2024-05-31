@@ -132,9 +132,11 @@ packages:
   dynamic_layouts:
     dependency: "direct main"
     description:
-      path: "../dynamic_layouts"
-      relative: true
-    source: path
+      path: "packages/dynamic_layouts"
+      ref: d3b60e5b77f2c84deb2ab2315c29bd5b5da6792e
+      resolved-ref: d3b60e5b77f2c84deb2ab2315c29bd5b5da6792e
+      url: "https://github.com/flutter/packages.git"
+    source: git
     version: "0.0.1+1"
   ffi:
     dependency: transitive

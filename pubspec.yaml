@@ -16,7 +16,10 @@ dependencies:
   dart_seq_http_client: ^0.0.1-pre.2
   domain_verification_manager: ^1.0.0
   dynamic_layouts:
-    path: ../dynamic_layouts
+    git:
+      url: https://github.com/flutter/packages.git
+      ref: d3b60e5b77f2c84deb2ab2315c29bd5b5da6792e
+      path: packages/dynamic_layouts
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.5
