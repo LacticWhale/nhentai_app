@@ -130,13 +130,13 @@ class _SettingsPageState extends State<SettingsPage> with WidgetsBindingObserver
                       : const Icon(Icons.link_off),
                     title: Text(
                       'App links',
-                      style: Theme.of(context).textTheme.headline6?.copyWith(fontSize: 16.0),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16.0),
                     ),
                     subtitle: Text(
                       _domainStateSelected.isNotEmpty 
                         ? 'nhentai.net urls will be opened in app' 
                         : 'nhentai.net urls will be opened in browser',
-                      style: Theme.of(context).textTheme.subtitle2
+                      style: Theme.of(context).textTheme.titleSmall
                         ?.copyWith(fontSize: 13.0, fontWeight: FontWeight.normal),  
                     ),
                     onTap: () async => DomainVerificationManager.domainRequest(),

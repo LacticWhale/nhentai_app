@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:nhentai/nhentai.dart';
+import 'package:go_router/go_router.dart';
 
 import '../api.dart';
 import '../screen/webview/nhentai.net.dart';
@@ -36,6 +36,15 @@ class UpdateCookies extends StatelessWidget {
             },
           ),
         ),
+        FilledButton(
+          onPressed: () {
+            // GoRouter.of(context).replace('?next');
+            GoRouter.of(context).go(GoRouterState.of(context).uri.replace(queryParameters: Map.of(GoRouterState.of(context).uri.queryParameters)..addAll({'next': null})).toString());
+          },
+          child: Text('Try loading next page.'),
+        ),
+        
+        (() { print(error); return null;})() ??
         Text(error.toString()),
       ],
     ),

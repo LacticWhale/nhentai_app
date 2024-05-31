@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:http/http.dart';
+import 'package:http/io_client.dart';
 import 'package:nhentai/nhentai.dart';
 import 'package:webview_cookie_manager/webview_cookie_manager.dart';
 
@@ -45,15 +46,19 @@ class CloudflareCookieManager {
 final cfManager = CloudflareCookieManager();  
 
 final api = API(
-  userAgent: MyApp.userAgent,
+  // userAgent: MyApp.userAgent,
+  client: IOClient(HttpClient()..userAgent = MyApp.userAgent),
   beforeRequest: beforeRequest,
 );
 
 FutureOr<void> beforeRequest(Request request) async {
-  final req = Request('GET', Uri.parse('https://echo-http-requests.appspot.com/echo'));
-  req.headers['Cookie'] = (await cfManager.cfClearance).toString();
+  final cookie = await cfManager.cfClearance;
+  if (cookie != null)
+    request.headers['Cookie'] = cookie.toString();
 
-  final response = await Response.fromStream(await api.client.send(req));
-  throw ApiClientException('a', originalException: Exception());
-  print(response.body);
+  print('----------------------');
+  print(cookie);
+  print(request.headers['User-Agent']);
+  print(request.url);
+  print('----------------------');
 }

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nhentai/data_model.dart';
 
@@ -36,6 +38,7 @@ Widget Function(BuildContext context, Book book) createGalleryCardWithCallback(F
           alignment: Alignment.center,
           child: CachedNetworkImage(
             alignment: Alignment.center,
+            fit: BoxFit.cover,
             imageUrl: book
                 .cover
                 .getUrl(api: api)
@@ -49,6 +52,30 @@ Widget Function(BuildContext context, Book book) createGalleryCardWithCallback(F
             errorWidget: (context, url, error) =>
                 const Icon(Icons.error),
             imageBuilder: blurredImageBuilder,
+          ),
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).cardColor.withAlpha(127),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(2),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.library_books, size: (Theme.of(context).iconTheme.size ?? 24) / 2,),
+                    Text(book.pages.length.toString(), 
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
         Align(

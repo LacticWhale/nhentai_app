@@ -5,6 +5,7 @@ import 'package:flutter_settings_screens/flutter_settings_screens.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'app.dart';
+import 'bloc/app_state_bloc.dart';
 import 'prefs.dart';
 
 Storage storage = Storage();
@@ -18,8 +19,13 @@ void main() async {
 
   packageInfo = await PackageInfo.fromPlatform();
   
-  if(kDebugMode)
+  if(kDebugMode) {
+    // final body = await (api as dynamic)._getJson(Uri.parse('https://echo-http-requests.appspot.com/echo'));
+    // print(body);
     print(MyApp.userAgent);
+  }
+
+  final AppState state = AppState();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -27,6 +33,6 @@ void main() async {
   ]);
 
   runApp(
-    const MyApp(),
+    MyApp(initialState: state),
   );
 }

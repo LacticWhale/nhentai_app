@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nhentai/data_model.dart';
 import 'package:nhentai/nhentai.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 
@@ -16,12 +15,6 @@ import '../../widgets/my_navigation_bar.dart';
 import '../../widgets/selector.dart';
 import '../../widgets/tag_block.dart';
 import '../../widgets/update_cookies.dart';
-import '../webview/nhentai.net.dart';
-import 'book.dart';
-import 'favorites.dart';
-import 'history.dart';
-import 'settings.dart';
-import 'tags.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({
@@ -56,7 +49,45 @@ class HomePage extends StatefulWidget {
   }
 }
 
+class SearchParameter {
+  SearchParameter({
+    this.query = '*',
+    this.includedTags = const [],
+    this.excludedTags = const [],
+    this.minPages = 1,
+    this.maxPages = -1,
+  });
+  
+  String query;
+
+  List<Tag> includedTags;
+  List<Tag> excludedTags;
+
+  // Minimum number of pages (inclusive) book can have.
+  int minPages;
+  // Maximum number of pages (inclusive) book can have. 
+  int maxPages;
+
+  // Combines all parameters into search string.
+  String build() {
+    final list = [
+      if (query.isNotEmpty && query != '*')
+        query,
+      ...includedTags.map(SearchQueryTag.new),
+      ...excludedTags.map(SearchQueryTag.new).map((e) => '-$e'),
+      if (minPages > 0)
+        'pages:>=$minPages',
+      if (maxPages > 0)
+        'pages:<=$maxPages',
+    ];
+
+    return list.isEmpty ? '*' : list.join(' ');
+  }
+}
+
 class _NewHomePageState extends State<HomePage> {
+  late SearchParameter _searchParameter;
+  
   late int _page;
   int? _pages;
 
@@ -66,11 +97,6 @@ class _NewHomePageState extends State<HomePage> {
   late PreloadPageController _pageController;
   late MyNavigationBarController _appNavBarController;
 
-  late List<Tag> _includedTags;
-  late List<Tag> _excludedTags;
-
-  String get _query => '${widget.query == '' ? '*' : widget.query}${_includedTags.isNotEmpty ? ' ${_includedTags.map((e) => '"$e"').join(' ')}' : '' }${_excludedTags.isNotEmpty ? ' ${_excludedTags.map((e) => '-"$e"').join(' ')}' : ''}';
-  
   @override
   void initState() {
     _page = widget.page;
@@ -78,14 +104,15 @@ class _NewHomePageState extends State<HomePage> {
     final selectedTags = storage.selectedTagsBox.values;
     _searchSort = preferences.searchSort;
 
-    _includedTags = List.from(widget.includedTags 
-      ?? selectedTags.where((tag) => tag.state == TagState.included),);
-    _excludedTags = List.from(widget.excludedTags 
-      ?? selectedTags.where((tag) => tag.state == TagState.excluded),);
-
-    if (kDebugMode) 
-      print('${_includedTags.hashCode} ${_excludedTags.hashCode}');
-    
+    _searchParameter = SearchParameter(
+      query: widget.query,
+      includedTags: List.from(widget.includedTags ?? 
+        selectedTags.where((tag) => tag.state == TagState.included),
+      ),
+      excludedTags: List.from(widget.excludedTags ?? 
+        selectedTags.where((tag) => tag.state == TagState.excluded),
+      ),
+    );   
 
     _searchBarController = TextEditingController(
       text: widget.query,
@@ -111,7 +138,7 @@ class _NewHomePageState extends State<HomePage> {
 
   Widget buildInitial(BuildContext context) => FutureBuilder<Search>(
     // ignore: discarded_futures
-    future: api.searchSinglePage(_query,
+    future: api.searchSinglePage(_searchParameter.build(),
       sort: _searchSort,
       page: widget.page,
     ),
@@ -120,7 +147,7 @@ class _NewHomePageState extends State<HomePage> {
         return Material(
           child: SafeArea(
             child: Scaffold(
-              appBar: AppBar(),
+              appBar: appBar,
               drawer: widget.drawer ? drawer : null,
               body: UpdateCookies(
                 error: snapshot.error!, 
@@ -131,7 +158,11 @@ class _NewHomePageState extends State<HomePage> {
         );
 
       if (!snapshot.hasData)
-        return loading;
+        return Scaffold(
+          appBar: appBar,
+          drawer: drawer,
+          body: loadingBody,
+        );
 
       final search = snapshot.data!;
       _pages = search.pages;
@@ -147,13 +178,13 @@ class _NewHomePageState extends State<HomePage> {
     bottomNavigationBar: bottomNavigationBar,
     body: PreloadPageView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
-      onPageChanged: (value) => _appNavBarController.changeCurrentPage(_page = value + 1),
+      // onPageChanged: (value) => _appNavBarController.changeCurrentPage(_page = value + 1),
       controller: _pageController,
       preloadPagesCount: 3,
       itemCount: _pages! - 1,
       itemBuilder: (context, index) => FutureBuilder<Search?>(
         // ignore: discarded_futures
-        future: api.searchSinglePage(_query,
+        future: api.searchSinglePage(_searchParameter.build(),
           sort: _searchSort,
           page: index + 1,
         ),
@@ -218,16 +249,31 @@ class _NewHomePageState extends State<HomePage> {
     return buildView(context);
   }
 
-  Widget get loadingBody => const Center(
-    child: CircularProgressIndicator(),
+  DateTime loadingStarted = DateTime.now(); 
+
+  Widget get loadingBody => Center(
+    child: Column(
+      children: [
+        CircularProgressIndicator(),
+        FutureBuilder(
+          future: Future<void>.delayed(Duration(seconds: 3)), 
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done)
+              return FilledButton(
+                onPressed: () {
+                  if (context.mounted)
+                    GoRouter.of(context).refresh();
+                }, 
+                child: const Text('Refresh'),
+              );
+            
+            return const SizedBox.shrink();
+          }),
+      ],
+    ),
   ); 
 
-  Scaffold get loading => Scaffold(
-    appBar: appBar,
-    drawer: drawer,
-    body: loadingBody,
-  );
-
+  
 
   Drawer get drawer => Drawer(
     child: ListView(
@@ -295,12 +341,12 @@ class _NewHomePageState extends State<HomePage> {
         onSelected: (_selectedSearchSort) async {
           preferences.setSearchSort(_selectedSearchSort).then((value) => 
             GoRouter.of(context).pushReplacement('/search'.addQuery({
-              'query': widget.query,
+              'query': _searchParameter.query,
               'page': 1,
             }), 
               extra: {
-                'include': widget.includedTags,
-                'exclude': widget.excludedTags,
+                'include': _searchParameter.includedTags,
+                'exclude': _searchParameter.excludedTags,
               },
             ),
           );
@@ -332,7 +378,7 @@ class _NewHomePageState extends State<HomePage> {
             child: const Text('Popular month'),
           ),
         ],
-      )
+      ),
     ],
   );
 
@@ -384,12 +430,14 @@ class _NewHomePageState extends State<HomePage> {
       .toSet(); 
     
     final equalsIncluded = const SetEquality<int>().equals(
-      _includedTags.map((tag) => tag.id).toSet(), 
-      includedTagsIds,);
+      _searchParameter.includedTags.map((tag) => tag.id).toSet(), 
+      includedTagsIds,
+    );
 
     final equalsExcluded = const SetEquality<int>().equals(
-        _excludedTags.map((tag) => tag.id).toSet(),
-        excludedTagsIds,);
+      _searchParameter.excludedTags.map((tag) => tag.id).toSet(),
+      excludedTagsIds,
+    );
 
     if(!equalsIncluded || !equalsExcluded) {
       GoRouter.of(context).pushReplacement('/search'.addQuery({

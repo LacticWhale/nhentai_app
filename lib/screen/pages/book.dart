@@ -7,14 +7,13 @@ import 'package:intl/intl.dart';
 import 'package:nhentai/data_model.dart';
 import 'package:nhentai/data_model_prefixed.dart';
 import 'package:path/path.dart';
-import 'package:share_plus/share_plus.dart';
+// import 'package:share_plus/share_plus.dart';
 
 import '../../api.dart';
 import '../../app.dart';
 import '../../functions/image_builder.dart';
 import '../../main.dart';
 import '../../widgets/tag_block.dart';
-import 'home.dart';
 import 'page_viewer.dart';
 
 class BookPage extends StatefulWidget {
@@ -67,7 +66,7 @@ class _BookPageState extends State<BookPage> {
                 floating: true,
                 actions: [
                   IconButton(
-                    onPressed: () async => Share.share('${widget.book.title.pretty}\nhttps://nhentai.net/g/${widget.book.id}'),
+                    onPressed: () async => Clipboard.setData(ClipboardData(text: '${widget.book.title.pretty}\nhttps://nhentai.net/g/${widget.book.id}')),
                     icon: const Icon(Icons.share),
                   ),
                   IconButton(
@@ -76,7 +75,7 @@ class _BookPageState extends State<BookPage> {
                       setState(() { });
                     },
                     icon: const Icon(Icons.grid_view_sharp),
-                  )
+                  ),
                 ],
               ),
               buildDescription(context),
@@ -151,7 +150,7 @@ class _BookPageState extends State<BookPage> {
                         });
                       },
                       child: const Text('Load comments'),
-                    )
+                    ),
                   ]),
                 )
               else
@@ -266,7 +265,7 @@ class _BookPageState extends State<BookPage> {
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -390,43 +389,50 @@ class _BookPageState extends State<BookPage> {
               margin: const EdgeInsets.only(left: 8.0, top: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: join(
-                          api.hosts.image.getUri().toString(), 
-                          'avatars', 
-                          comments.elementAt(index).author.avatarFilename,
-                        ),
-                        httpHeaders: MyApp.headers,
-                        progressIndicatorBuilder:
-                            (context, url, downloadProgress) => Center(
-                          child: CircularProgressIndicator(
-                            value: downloadProgress.progress,
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: join(
+                            api.hosts.image.getUri().toString(), 
+                            'avatars', 
+                            comments.elementAt(index).author.avatarFilename,
+                          ),
+                          httpHeaders: MyApp.headers,
+                          progressIndicatorBuilder:
+                              (context, url, downloadProgress) => Center(
+                            child: CircularProgressIndicator(
+                              value: downloadProgress.progress,
+                            ),
+                          ),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
+                          imageBuilder: (context, imageProvider) => CircleAvatar(
+                            foregroundImage: imageProvider,
                           ),
                         ),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                        imageBuilder: (context, imageProvider) => CircleAvatar(
-                          foregroundImage: imageProvider,
+                        Flexible(
+                          fit: FlexFit.loose,
+                          child: Container(
+                            padding: const EdgeInsets.only(left: 16.0),
+                            child: Text(comments.elementAt(index).author.username, overflow: TextOverflow.clip,),
+                          ),
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.only(left: 16.0),
-                        child: Text(comments.elementAt(index).author.username),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: Text(
                       DateFormat.yMd().add_jm().format(comments.elementAt(index).date.toLocal()),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

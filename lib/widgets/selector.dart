@@ -93,7 +93,7 @@ class _SelectorState extends State<Selector> {
               },
               child: const Text('Select'),
             ),
-          )
+          ),
         ],
       ),
     );

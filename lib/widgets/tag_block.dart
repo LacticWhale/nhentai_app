@@ -84,7 +84,7 @@ class TagBlock extends StatelessWidget {
                 color: Colors.grey,
               ),
             ),
-          )
+          ),
         ],
       ),
     ),  

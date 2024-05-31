@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -94,7 +93,7 @@ class _PageViewerState extends State<PageViewer> {
 
   static const MethodChannel _pathChannel = MethodChannel('azura.moe/paths');
   
-  static const MethodChannel _clipboardChannel = MethodChannel('azura.moe/clipboard');
+  // static const MethodChannel _clipboardChannel = MethodChannel('azura.moe/clipboard');
 
   Future<File?> getImage([int? page]) async {
     final storage = await Permission.storage.request();
@@ -177,7 +176,6 @@ class _PageViewerState extends State<PageViewer> {
                     break;
                     case 'save':
                       downloadPage();
-                    break;
                   }
                 }, 
                 itemBuilder: (context) => [
@@ -189,11 +187,11 @@ class _PageViewerState extends State<PageViewer> {
                   const PopupMenuItem(
                     value: 'copy',
                     child: Text('Copy to clipboard'),
-                  )
+                  ),
                 ],
                 icon: const Icon(Icons.more_vert),
               ),
-            )
+            ),
           ],
         ),
         body: PreloadPageView.builder(

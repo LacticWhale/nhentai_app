@@ -1,13 +1,13 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../api.dart';
 import '../../app.dart';
-import '../../main.dart';
+import 'web_view_info.dart';
 
 class NHentaiWebView extends StatefulWidget {
   const NHentaiWebView({super.key});
@@ -34,7 +34,11 @@ class _NHentaiWebViewState extends State<NHentaiWebView> {
               // Update loading bar.
             },
             onPageFinished: (url) async {
+              context.read<WebViewBloc>().add(WebViewUpdatePath(newPath: url));
               final cookie = await cfManager.cfClearance;
+              if (!context.mounted) 
+                return;
+              context.read<WebViewBloc>().add(WebViewUpdateCookie(newCookie: cookie.toString()));
               if (cookie != null) {
                 if (mounted)
                   Navigator.of(context).pop(cookie);
@@ -46,9 +50,9 @@ class _NHentaiWebViewState extends State<NHentaiWebView> {
             },
           ),
         )
-        ..loadRequest(Uri.parse('https://echo-http-requests.appspot.com/echo'))
-        // ..loadRequest(
-        //     Uri.parse('https://nhentai.net/api/galleries/search?query=*'))
+        // ..loadRequest(Uri.parse('https://echo-http-requests.appspot.com/echo'))
+        ..loadRequest(
+            Uri.parse('https://nhentai.net/api/galleries/search?query=*'))
         ;
     });
   }
@@ -56,6 +60,21 @@ class _NHentaiWebViewState extends State<NHentaiWebView> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Flutter Simple Example')),
-    body: WebViewWidget(controller: _controller),
+    body: Stack(
+      children: [
+        WebViewWidget(controller: _controller),
+        Positioned(
+          bottom: 0,
+          child: BlocBuilder<WebViewBloc, WebViewState>(builder: (context, state) => 
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Cookie: ${state.cookie}', maxLines: 1, overflow: TextOverflow.clip),
+                Text('Path: ${state.path}', maxLines: 1, overflow: TextOverflow.clip),
+              ],
+            ),) 
+        ),
+      ] 
+    ),
   );
 }

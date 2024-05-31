@@ -53,6 +53,15 @@ final _router = GoRouter(
           drawer: drawer,
         );
       },
+      redirect: (context, state) {
+        print(state.uri);
+        if (state.uri.queryParameters.containsKey('next')) {
+          final queryParameters = Map.of(state.uri.queryParameters)
+            ..remove('next');
+          queryParameters['page'] = (int.parse(queryParameters['page'] ?? '1') + 1).toString(); 
+          return state.uri.replace(queryParameters: queryParameters).toString();
+        }
+      },
     ),
     GoRoute(
       path: '/book/:id',
