@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -28,6 +30,8 @@ class Selector extends StatefulWidget {
 
 class _SelectorState extends State<Selector> {
   int? _currentSliderPage;
+  
+  final _textController = TextEditingController(); 
 
   late int _pages;
   late int _page;
@@ -43,6 +47,13 @@ class _SelectorState extends State<Selector> {
   }
 
   @override
+  void dispose() {
+    _textController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -51,7 +62,10 @@ class _SelectorState extends State<Selector> {
             min: 1,
             max: _pages.toDouble(),
             divisions: _pages,
-            onChanged: (value) => setState(() => _currentSliderPage = value.toInt()),
+            onChanged: (value) {
+              _textController.clear();
+              setState(() => _currentSliderPage = value.toInt());
+            },
             value: (_currentSliderPage ??= _page).toDouble(),
           ),
           Row(
@@ -67,8 +81,23 @@ class _SelectorState extends State<Selector> {
                 icon: const Icon(Icons.arrow_back_ios),
               ),
               const Spacer(),
-              Text(
-                '${_currentSliderPage == 0 ? _page : _currentSliderPage}/$_pages',
+              Flexible(
+                fit: FlexFit.loose,
+                child: TextField(
+                  controller: _textController,
+                  onSubmitted: (value) => setState(() {
+                    final page = int.tryParse(value) ?? 0;
+                    _currentSliderPage = max(1, min(_pages, page));
+                  }),
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: '${_currentSliderPage == 0 ? _page : _currentSliderPage}',
+                  ),
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+              Text('/$_pages',
+                style: Theme.of(context).textTheme.labelMedium,
               ),
               const Spacer(),
               IconButton(
@@ -89,6 +118,7 @@ class _SelectorState extends State<Selector> {
               onPressed: () {
                 if (Navigator.canPop(context)) 
                   Navigator.pop(context);
+                
                 _onJump(_currentSliderPage!);
               },
               child: const Text('Select'),
